@@ -14,7 +14,7 @@
 
 @property (strong, nonatomic) LNLevel *level;
 @property (assign, nonatomic) BOOL soundOn;
-@property (copy, nonatomic) void (^moveHandler)(LNPoint fromPoint, LNPoint toPoint);
+@property (copy, nonatomic) void (^moveHandler)(Cell fromPoint, Cell toPoint);
 
 - (void)addTiles;
 - (void)addSpritesForBalls:(NSSet *)balls;

@@ -17,6 +17,9 @@ static const NSUInteger NumBallTypes = 7;
 @property (assign, nonatomic) NSInteger ballType;
 @property (strong, nonatomic) SKSpriteNode *sprite;
 
+/// Ball to hay nhỏ.
+@property (readonly, nonatomic) BOOL isBigBall;
+
 - (NSString *)spriteName;
 //- (NSString *)highlightedSpriteName;
 - (NSArray*)explodeSpriteTextures;

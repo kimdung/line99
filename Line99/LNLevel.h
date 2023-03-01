@@ -19,27 +19,54 @@ static const NSInteger EatBallLineNum = 5;
 typedef struct {
     NSInteger column;
     NSInteger row;
-} LNPoint;
+} Cell;
 
 typedef struct {
     NSInteger len;
-    LNPoint point[NumColumns * NumRows];
-} LNPointList;
+    Cell cells[NumColumns * NumRows];
+} LNCellList;
 
 @interface LNLevel : NSObject
 
 - (NSSet *)shuffle;
+
+
+/// Lấy ball tại cell
+/// - Parameter cell: cell cần truy vấn
+/// - Returns: ball. Nil nếu không có
+- (LNBall *)ballAtCell:(Cell)cell;
+
 - (LNBall *)ballAtColumn:(NSInteger)column row:(NSInteger)row;
 
-- (int)countEmpty;
+- (int)countEmptyCell;
 
 - (void)resetComboMultiplier;
-- (LNPointList)findPathFromPoint:(LNPoint)fromPoint toPoint:(LNPoint)toPoint;
 
-- (LNPoint)findEmptyLocation;
+/// Tìm đường đi giữa 2 cell
+/// - Parameters:
+///   - fromCell: cell bắt đầu
+///   - toCell: cell kết thúc
+///   - Returns: list cell đường đi. Độ dài của list == 0 tức là không tìm thấy
+- (LNCellList)findPathFromCell:(Cell)fromCell toCell:(Cell)toCell;
+
+/// Tìm cell trống trên màn hình
+/// - Returns: cell trống. Nếu column hoặc row == NSNotFound tức là không tìm thấy
+- (Cell)findEmptyCell;
+
+/// Tạm thời xoá small ball khỏi màn hình. (Sử dụng trong trường hợp đích đến có chứa small ball)
+/// - Parameter smallBall: small ball sẽ xoá
 - (void)temporaryRemoveSmallBall:(LNBall*)smallBall;
-- (void)performMoveSmallBall:(LNBall*)smallBall toPoint:(LNPoint)toPoint;
+
+
+/// Chuyển small ball đến empty cell.
+/// - Parameters:
+///   - smallBall: small ball sẽ chuyển
+///   - emptyCell: cell đích
+- (void)performMoveSmallBall:(LNBall*)smallBall toCell:(Cell)emptyCell;
+
+
 - (void)performMove:(LNMove *)move;
+- (void)performMoveBall:(LNBall *)ball toCell:(Cell)toCell;
 - (NSSet*)addNextBigBalls;
 - (NSSet*)addNextSmallBalls;
 //- (LNPointList)checkLinesWithBall:(LNBall*)ball;

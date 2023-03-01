@@ -17,6 +17,7 @@ typedef NS_ENUM(NSUInteger, ChainType) {
     ChainType_135
 };
 
+/// Chain chứa danh sách các ball ăn được điểm
 @interface LNChain : NSObject
 
 @property (strong, nonatomic, readonly) NSArray *balls;

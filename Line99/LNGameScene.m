@@ -34,9 +34,9 @@ static const CGFloat TileHeight = 36.0;
 @property (strong, nonatomic) SKAction *jumpingSound;
 @property (strong, nonatomic) SKSpriteNode *backgroundNode;
 
-@property (assign, nonatomic) LNPoint selectedPoint;
+@property (assign, nonatomic) Cell selectedPoint;
 
-@property (readonly, nonatomic) LNPoint invalidPoint;
+@property (readonly, nonatomic) Cell invalidPoint;
 
 @property (strong, nonatomic) LNBall *selectedBall;
 
@@ -193,8 +193,8 @@ static const CGFloat TileHeight = 36.0;
     }
 }
 
-- (LNPoint)invalidPoint {
-    LNPoint point;
+- (Cell)invalidPoint {
+    Cell point;
     point.column = point.row = NSNotFound;
     return point;
 }
@@ -371,27 +371,27 @@ static const CGFloat TileHeight = 36.0;
     [self hideSelectionIndicatorCompletion:nil];
 
 
-    NSInteger count = move.pointList.len - 1;
+    NSInteger count = move.cellList.len - 1;
     CGMutablePathRef path = CGPathCreateMutable();
-    CGPoint p = [self pointForColumn:move.pointList.point[count].column row:move.pointList.point[count].row];
+    CGPoint p = [self pointForColumn:move.cellList.cells[count].column row:move.cellList.cells[count].row];
     CGPathMoveToPoint(path, nil, p.x, p.y);
     count--;
     do {
-        p = [self pointForColumn:move.pointList.point[count].column row:move.pointList.point[count].row];
+        p = [self pointForColumn:move.cellList.cells[count].column row:move.cellList.cells[count].row];
         CGPathAddLineToPoint(path, nil, p.x, p.y);
         count--;
     } while (count >= 0);
     NSTimeInterval duration = 0.04;
-    SKAction *moveAction = [SKAction followPath:path asOffset:NO orientToPath:NO duration:duration*move.pointList.len];
+    SKAction *moveAction = [SKAction followPath:path asOffset:NO orientToPath:NO duration:duration*move.cellList.len];
     CGPathRelease(path);
     moveAction.timingMode = SKActionTimingEaseInEaseOut;
 
     [move.ball.sprite runAction: [SKAction sequence:@[moveAction, [SKAction runBlock:completion]]]];
 
-    duration = duration*move.pointList.len;
+    duration = duration*move.cellList.len;
     if (move.smallBall) {
         SKSpriteNode *sprite = move.smallBall.sprite;
-        LNPoint endPoint = move.pointList.point[move.pointList.len - 1];
+        Cell endPoint = move.cellList.cells[move.cellList.len - 1];
         CGPoint p = [self pointForColumn:endPoint.column row:endPoint.row];
         SKAction *action = [SKAction sequence:@[
                                                 [SKAction fadeOutWithDuration:duration],
@@ -410,26 +410,26 @@ static const CGFloat TileHeight = 36.0;
 
     NSInteger count = 0;
     CGMutablePathRef path = CGPathCreateMutable();
-    CGPoint p = [self pointForColumn:move.pointList.point[count].column row:move.pointList.point[count].row];
+    CGPoint p = [self pointForColumn:move.cellList.cells[count].column row:move.cellList.cells[count].row];
     CGPathMoveToPoint(path, nil, p.x, p.y);
     count++;
     do {
-        p = [self pointForColumn:move.pointList.point[count].column row:move.pointList.point[count].row];
+        p = [self pointForColumn:move.cellList.cells[count].column row:move.cellList.cells[count].row];
         CGPathAddLineToPoint(path, nil, p.x, p.y);
         count++;
-    } while (count < move.pointList.len);
+    } while (count < move.cellList.len);
     NSTimeInterval duration = 0.04;
-    SKAction *moveAction = [SKAction followPath:path asOffset:NO orientToPath:NO duration:duration*move.pointList.len];
+    SKAction *moveAction = [SKAction followPath:path asOffset:NO orientToPath:NO duration:duration*move.cellList.len];
     CGPathRelease(path);
     moveAction.timingMode = SKActionTimingEaseInEaseOut;
 
     [move.ball.sprite runAction: [SKAction sequence:@[moveAction, [SKAction runBlock:completion]]]];
 
-    duration = duration*move.pointList.len;
+    duration = duration*move.cellList.len;
     if (move.smallBall) {
         SKSpriteNode *sprite = move.smallBall.sprite;
 
-        CGPoint p = [self pointForColumn:move.emptyPoint.column row:move.emptyPoint.row];
+        CGPoint p = [self pointForColumn:move.emptyCell.column row:move.emptyCell.row];
         SKAction *action = [SKAction sequence:@[
                                                 [SKAction fadeOutWithDuration:duration],
                                                 [SKAction moveTo:p duration:0],
@@ -526,7 +526,7 @@ static const CGFloat TileHeight = 36.0;
         }
         if (!_invalidTouch) {
             if (self.selectedPoint.column == NSNotFound) {
-                LNPoint p;
+                Cell p;
                 p.column = self.touchedColumn;
                 p.row = self.touchedRow;
                 LNBall *ball = [self.level ballAtColumn:p.column row:p.row];
@@ -542,7 +542,7 @@ static const CGFloat TileHeight = 36.0;
                 }];
                 self.selectedPoint = self.invalidPoint;
             } else {
-                LNPoint p;
+                Cell p;
                 p.column = self.touchedColumn;
                 p.row = self.touchedRow;
                 [self tryMoveBallFromPoint:self.selectedPoint toPoint:p];
@@ -555,7 +555,7 @@ static const CGFloat TileHeight = 36.0;
     [self touchesEnded:touches withEvent:event];
 }
 
-- (void)tryMoveBallFromPoint:(LNPoint)fromPoint toPoint:(LNPoint)toPoint {
+- (void)tryMoveBallFromPoint:(Cell)fromPoint toPoint:(Cell)toPoint {
     LNBall *fromBall = [self.level ballAtColumn:fromPoint.column row:fromPoint.row];
     if (fromBall == nil || fromBall.ballType < 0) {
         self.selectedPoint = self.invalidPoint;

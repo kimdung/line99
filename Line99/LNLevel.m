@@ -67,7 +67,7 @@
     NSMutableSet *set = [NSMutableSet set];
 
     int count, tmp, i, j, remain, stop;
-    count = [self countEmpty];
+    count = [self countEmptyCell];
     LNBall *ball;
     int ballType;
     NSMutableSet *tmpSet = [NSMutableSet set];
@@ -114,7 +114,7 @@
     return set;
 }
 
-- (int)countEmpty {
+- (int)countEmptyCell {
     int i, j, count;
     count = 0;
     for (i = 0; i < NumColumns; i++) {
@@ -137,6 +137,10 @@
     return ball;
 }
 
+- (LNBall *)ballAtCell:(Cell)cell {
+    return _balls[cell.column][cell.row];
+}
+
 - (LNBall *)ballAtColumn:(NSInteger)column row:(NSInteger)row {
     NSAssert1(column >= 0 && column < NumColumns, @"Invalid column: %ld", (long)column);
     NSAssert1(row >= 0 && row < NumRows, @"Invalid row: %ld", (long)row);
@@ -145,8 +149,8 @@
 }
 
 - (void)performMove:(LNMove *)move {
-    NSInteger len = move.pointList.len;
-    LNPoint endPoint = move.pointList.point[len-1];
+    NSInteger len = move.cellList.len;
+    Cell endPoint = move.cellList.cells[len-1];
     NSAssert1(_balls[endPoint.column][endPoint.row] == nil, @"Invalid moving %@", _balls[endPoint.column][endPoint.row]);
 
     LNBall *movingBall = move.ball;
@@ -157,6 +161,13 @@
     movingBall.column = endPoint.column;
     movingBall.row = endPoint.row;
     _balls[endPoint.column][endPoint.row] = movingBall;
+}
+
+- (void)performMoveBall:(LNBall *)ball toCell:(Cell)toCell {
+    _balls[ball.column][ball.row] = nil;
+    _balls[toCell.column][toCell.row] = ball;
+    ball.column = toCell.column;
+    ball.row = toCell.row;
 }
 
 - (BOOL)isInside:(NSInteger)column row:(NSInteger)row {
@@ -269,9 +280,9 @@
 
 
 - (void)performUndoMove:(LNMove*)move {
-    LNPointList pointList = move.pointList;
-    LNPoint startPoint = pointList.point[0];
-    LNPoint endPoint = pointList.point[pointList.len - 1];
+    LNCellList pointList = move.cellList;
+    Cell startPoint = pointList.cells[0];
+    Cell endPoint = pointList.cells[pointList.len - 1];
     LNBall *ball = move.ball;
     ball.column = startPoint.column;
     ball.row = startPoint.row;
@@ -281,7 +292,7 @@
         smallBall.column = endPoint.column;
         smallBall.row = endPoint.row;
         _balls[endPoint.column][endPoint.row] = smallBall;
-        _balls[move.emptyPoint.column][move.emptyPoint.row] = nil;
+        _balls[move.emptyCell.column][move.emptyCell.row] = nil;
     } else {
         _balls[endPoint.column][endPoint.row] = nil;
     }
@@ -310,14 +321,11 @@
     self.comboMultiplier = 1;
 }
 
-
-
-
-- (LNPointList)findPathFromPoint:(LNPoint)fromPoint toPoint:(LNPoint)toPoint {
-    NSInteger i1 = fromPoint.column;
-    NSInteger j1 = fromPoint.row;
-    NSInteger i2 = toPoint.column;
-    NSInteger j2 = toPoint.row;
+- (LNCellList)findPathFromCell:(Cell)fromCell toCell:(Cell)toCell {
+    NSInteger i1 = fromCell.column;
+    NSInteger j1 = fromCell.row;
+    NSInteger i2 = toCell.column;
+    NSInteger j2 = toCell.row;
 
     NSInteger dadi[NumColumns][NumRows];
     NSInteger dadj[NumColumns][NumRows];
@@ -332,7 +340,7 @@
 
     NSInteger x, y, xx, yy, i, k;
 
-    LNPointList res;
+    LNCellList res;
     res.len = 0;
 
     for (x = 0; x < NumColumns; x++) {
@@ -358,8 +366,8 @@
 
                 i = 0;
                 while (1) {
-                    res.point[i].column = i1;
-                    res.point[i].row = j1;
+                    res.cells[i].column = i1;
+                    res.cells[i].row = j1;
                     i++;
                     k = i1;
                     i1 = dadi[i1][j1];
@@ -368,7 +376,7 @@
                 }
                 res.len = i;
                 for (int i = 0; i < res.len; i++) {
-                    DLog(@"col %ld row %ld", (long)res.point[i].column, (long)res.point[i].row);
+                    DLog(@"col %ld row %ld", (long)res.cells[i].column, (long)res.cells[i].row);
                 }
                 return res;
             }
@@ -386,19 +394,17 @@
     }
 
     for (int i = 0; i < res.len; i++) {
-        DLog(@"col %ld row %ld", (long)res.point[i].column, (long)res.point[i].row);
+        DLog(@"col %ld row %ld", (long)res.cells[i].column, (long)res.cells[i].row);
     }
 
     return res;
 }
 
-
-
-- (LNPoint)findEmptyLocation {
-    LNPoint emptyPoint;
+- (Cell)findEmptyCell {
+    Cell emptyPoint;
     emptyPoint.column = emptyPoint.row = NSNotFound;
 
-    int empty = [self countEmpty];
+    int empty = [self countEmptyCell];
     if (empty == 0) {
         return emptyPoint;
     } else {
@@ -438,13 +444,13 @@
 //    }
 //}
 
-- (void)performMoveSmallBall:(LNBall*)smallBall toPoint:(LNPoint)toPoint {
-    if (toPoint.column == NSNotFound) {
+- (void)performMoveSmallBall:(LNBall*)smallBall toCell:(Cell)emptyCell {
+    if (emptyCell.column == NSNotFound || emptyCell.row == NSNotFound) {
         _balls[smallBall.column][smallBall.row] = nil;
     } else {
-        smallBall.column = toPoint.column;
-        smallBall.row = toPoint.row;
-        _balls[toPoint.column][toPoint.row] = smallBall;
+        smallBall.column = emptyCell.column;
+        smallBall.row = emptyCell.row;
+        _balls[emptyCell.column][emptyCell.row] = smallBall;
     }
 }
 

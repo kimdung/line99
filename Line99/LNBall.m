@@ -73,6 +73,9 @@
 //    return highlightedSpriteNames[ballType - 1];
 //}
 
+- (BOOL)isBigBall {
+    return _ballType > 0;
+}
 
 - (NSString *)description {
     return [NSString stringWithFormat:@"type:%ld square:(%ld,%ld)", (long)self.ballType, (long)self.column, (long)self.row];

@@ -12,8 +12,8 @@ import GameplayKit
 class GameViewController: UIViewController {
 
     @IBOutlet weak var gridView: UIView!
-    private var scene: LNGameScene!
-    private var level: LNLevel = LNLevel()
+    private var scene: GameScene!
+//    private var level: LNLevel = LNLevel()
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -37,50 +37,86 @@ class GameViewController: UIViewController {
 //            view.showsNodeCount = true
 
 
-            scene = LNGameScene.init(size: view.bounds.size)
+//            scene = LNGameScene.init(size: view.bounds.size)
+//            scene.scaleMode = .aspectFill
+////            view.presentScene(scene)
+//            scene.addTiles()
+//            scene.level = level
+
+            scene = GameScene(size: view.bounds.size)
+//            scene.level = level
+
             scene.scaleMode = .aspectFill
             view.presentScene(scene)
-            scene.addTiles()
-            scene.level = level
 
-            let block: ((_ fromPoint: LNPoint, _ toPoint: LNPoint) -> Void)  = {[weak self] fromPoint,toPoint in
-                guard let self = self else { return }
-                let pointList = self.level.findPath(from: fromPoint, to: toPoint)
-                if pointList.len == 0 {
-                    self.scene.animateInvalidMoveCompletion {
+          
 
-                    }
-                } else {
-                    let move = LNMove()
-                    move.ball = self.level.ball(atColumn: fromPoint.column, row: fromPoint.row)
-                    move.pointList = pointList
-                    self.level.perform(move)
-                    self.scene.animate(move) {
-
-                    }
-                }
-            }
-
-            scene.moveHandler = block
+//            scene.moveHandler = block
             beginGame()
         }
     }
 
-    override var shouldAutorotate: Bool {
-        return true
+    @IBAction func undoButtonOnClicked(_ sender: Any) {
+        scene.undo()
     }
-
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return .allButUpsideDown
-        } else {
-            return .all
+    /*
+    private func beginNextTurn() {
+        let bigBallSet = level.addNextBigBalls()
+        scene.animateAddNew(bigBalls: bigBallSet! as NSSet) { [weak self] in
+            guard let self = self else { return }
+            if (!self.handleMathes(balls: bigBallSet! as! Set<LNBall>)) {
+                let smallBallSet = self.level.addNextSmallBalls()
+                if smallBallSet?.count == 0 {
+                    // game over
+                } else {
+                    self.scene.animateAddNew(smallBalls: smallBallSet! as NSSet)
+                }
+            }
         }
     }
 
-    override var prefersStatusBarHidden: Bool {
-        return true
+    private func handleMathes(balls: Set<LNBall>) -> Bool {
+        var foundLine = false
+        var removedChains = Set<LNChain>()
+        for ball in balls {
+            if let chains = level.removeMatchesBall(ball) {
+                if chains.count != 0 {
+                    // undo
+                    foundLine = true
+                    removedChains.inserts(chains as! Set<LNChain>)
+                }
+            }
+        }
+
+        if foundLine {
+            var addScore:UInt = 0
+            for chain in removedChains {
+                addScore += chain.score
+            }
+            scene.animateMatched(chains: removedChains) {
+
+            }
+            return true
+        }
+        return false
     }
+    */
+
+//    override var shouldAutorotate: Bool {
+//        return true
+//    }
+//
+//    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+//        if UIDevice.current.userInterfaceIdiom == .phone {
+//            return .allButUpsideDown
+//        } else {
+//            return .all
+//        }
+//    }
+
+//    override var prefersStatusBarHidden: Bool {
+//        return true
+//    }
 
 
     private func beginGame() {
@@ -88,8 +124,21 @@ class GameViewController: UIViewController {
     }
 
     private func shuffle() {
-        scene.removeAllBallSprites()
-        let newBalls = level.shuffle()
-        scene.addSprites(forBalls: newBalls)
+        scene.removeAllBallSprites {
+
+        }
+        let newBalls = scene.level.shuffle()
+        scene.addSprites(forBalls: newBalls!)
+    }
+}
+
+extension Set {
+
+
+
+    mutating func inserts(_ elements: Set<Element>) {
+        for element in elements {
+            insert(element)
+        }
     }
 }

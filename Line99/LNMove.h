@@ -14,9 +14,9 @@
 @interface LNMove : NSObject
 
 @property (strong, nonatomic) LNBall *ball;
-@property (assign, nonatomic) LNPointList pointList;
+@property (assign, nonatomic) LNCellList cellList;
 
 @property (strong, nonatomic) LNBall *smallBall;
-@property (assign, nonatomic) LNPoint emptyPoint;
+@property (assign, nonatomic) Cell emptyCell;
 
 @end
