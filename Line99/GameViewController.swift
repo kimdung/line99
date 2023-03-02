@@ -43,7 +43,7 @@ class GameViewController: UIViewController {
 //            scene.addTiles()
 //            scene.level = level
 
-            scene = GameScene(size: view.bounds.size)
+            scene = GameScene(size: CGSize(width: 350, height: 350))
 //            scene.level = level
 
             scene.scaleMode = .aspectFill
@@ -120,16 +120,9 @@ class GameViewController: UIViewController {
 
 
     private func beginGame() {
-        shuffle()
+        scene.startGame()
     }
 
-    private func shuffle() {
-        scene.removeAllBallSprites {
-
-        }
-        let newBalls = scene.level.shuffle()
-        scene.addSprites(forBalls: newBalls!)
-    }
 }
 
 extension Set {

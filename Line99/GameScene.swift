@@ -8,14 +8,14 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, ObservableObject {
     typealias CompletionBlock = (() -> Void)
 
     private let backgroundZPostion: CGFloat = 1
     private let gridZPosition: CGFloat = 2
     private let ballZposition: CGFloat = 100
     private let scoreZposition: CGFloat = 101
-    var level: LNLevel = LNLevel()
+    private var level: LNLevel = LNLevel()
 
     private var undoArr: [Undo] = []
     var soundOn: Bool = false
@@ -57,6 +57,15 @@ class GameScene: SKScene {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    func startGame() {
+        undoArr.removeAll()
+        removeAllBallSprites()
+        let newBalls = level.shuffle() as! Set<LNBall>
+        level.resetComboMultiplier()
+        addSprites(forBalls: newBalls)
+    }
+
 
     /// Vẽ lưới 9x9 trên màn hình
     private func setupGridLayer() {
@@ -111,6 +120,7 @@ class GameScene: SKScene {
         }
     }
 
+    /// Ẩn ball được chọn bằng cách tắt animation và đưa ball về trung tâm của cell
     private func hideSelectionIndicator(ball: LNBall) {
         ball.sprite.removeAllActions()
         let centerPoint = point(column: ball.column, row: ball.row)
@@ -119,24 +129,9 @@ class GameScene: SKScene {
         ball.sprite.run(moveToCenterAction)
     }
 
-    /// Ẩn ball được chọn bằng cách tắt animation và đưa ball về trung tâm của cell
-    private func hideSelectionIndicator(completion: @escaping CompletionBlock) {
-        guard let seletecBall = seletecBall else {
-            return
-        }
-        //        selectedPoint = invalidPoint
-        seletecBall.sprite.removeAllActions()
-
-        let centerPoint = point(column: seletecBall.column, row: seletecBall.row)
-        let moveAction = SKAction.move(to: centerPoint, duration: 0.1)
-        moveAction.timingMode = .easeInEaseOut
-        seletecBall.sprite.run(moveAction, completion: completion)
-
-    }
-
 
     /// Tạo spriteNode cho balls, add spriteNode vào ballLayer
-    func addSprites(forBalls balls: Set<AnyHashable>) {
+    private func addSprites(forBalls balls: Set<AnyHashable>) {
         let textureCache = LNTextureCache.sharedInstance() as! LNTextureCache
         for ball in balls {
             guard let ball = ball as? LNBall, let sprite = textureCache.sprite(withCacheName: ball.spriteName())  else {
@@ -171,7 +166,7 @@ class GameScene: SKScene {
 
     /// Hiển thị big ball trên màn hình bằng cách scale các small ball lên thành big ball
     /// - Parameter balls: các balls nhỏ có sẵn trên màn hình (ballLayer)
-    func animateShowBigBalls(_ balls: Set<LNBall>) async {
+    private func animateShowBigBalls(_ balls: Set<LNBall>) async {
         return await withTaskGroup(of: Void.self) { group in
             let duration: TimeInterval = 0.2
             for ball in balls {
@@ -186,7 +181,7 @@ class GameScene: SKScene {
 
     /// Add các small ball lên màn hình. (Add vào ballLayer)
     /// - Parameter balls: small balls sẽ add
-    func animateAddSmallBalls(_ balls: Set<LNBall>) {
+    private func animateAddSmallBalls(_ balls: Set<LNBall>) {
         let textureCache = LNTextureCache.sharedInstance() as! LNTextureCache
         let duration = 0.2
         for ball in balls {
@@ -211,7 +206,7 @@ class GameScene: SKScene {
 
 
     /// Xoá sạch balls trên màn hình.
-    func removeAllBallSprites(completion: @escaping CompletionBlock) {
+    private func removeAllBallSprites() {
         if let seletecBall = seletecBall {
             hideSelectionIndicator(ball: seletecBall)
         }
@@ -286,7 +281,7 @@ class GameScene: SKScene {
 
     }
 
-    func animate(move: LNMove) async {
+    private func animate(move: LNMove) async {
         hideSelectionIndicator(ball: move.ball)
         seletecBall = nil
 
@@ -403,7 +398,7 @@ class GameScene: SKScene {
             }
             Task {
                 await animate(move:move)
-                if let movedBall = level.ball(atColumn: toCell.column, row: toCell.row) {
+                if let movedBall = level.ball(at: toCell) {
                     if !handleMatches(balls: [movedBall]) {
                         beginNextTurn()
                     }
@@ -487,6 +482,10 @@ extension GameScene {
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         touchesEnded(touches, with: event)
+    }
+
+    override func didEvaluateActions() {
+
     }
 
 }

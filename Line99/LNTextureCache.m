@@ -122,6 +122,7 @@ static LNTextureCache *__shared;
         sampleRect = CGRectApplyAffineTransform(sampleRect, CGAffineTransformMakeScale(factor, factor));
 
         SKTexture *subTex = [SKTexture textureWithRect:textureRect inTexture:foundTexture];
+
         sprite = [SKSpriteNode spriteNodeWithTexture:subTex size:sampleRect.size];
 
     }

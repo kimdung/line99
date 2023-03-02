@@ -23,7 +23,6 @@
 		CEAF9CC929A75630007F0503 /* LNTextureCache.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC329A75630007F0503 /* LNTextureCache.m */; };
 		CEAF9CCA29A75630007F0503 /* LNLevel.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC529A75630007F0503 /* LNLevel.m */; };
 		CEAF9CCB29A75630007F0503 /* LNMove.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC629A75630007F0503 /* LNMove.m */; };
-		CEAF9CCE29A75654007F0503 /* LNGameScene.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CCD29A75654007F0503 /* LNGameScene.m */; };
 		CEAF9CD629A7581E007F0503 /* move.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD129A7581E007F0503 /* move.wav */; };
 		CEAF9CD729A7581E007F0503 /* jump.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD229A7581E007F0503 /* jump.wav */; };
 		CEAF9CD829A7581E007F0503 /* destroy.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD329A7581E007F0503 /* destroy.wav */; };
@@ -266,7 +265,6 @@
 				CEAF9CC829A75630007F0503 /* LNChain.m in Sources */,
 				CE6E57CF2732AB86005AC466 /* TextureCache.swift in Sources */,
 				CE6E57C827314078005AC466 /* Matrix.swift in Sources */,
-				CEAF9CCE29A75654007F0503 /* LNGameScene.m in Sources */,
 				CE6E579B27313F98005AC466 /* GameScene.swift in Sources */,
 				CE7CF1312738DD8A00B4B5A4 /* UIImage+Extension.swift in Sources */,
 				CE6E579D27313F98005AC466 /* GameViewController.swift in Sources */,

@@ -36,7 +36,7 @@ typedef struct {
 /// - Returns: ball. Nil nếu không có
 - (LNBall *)ballAtCell:(Cell)cell;
 
-- (LNBall *)ballAtColumn:(NSInteger)column row:(NSInteger)row;
+//- (LNBall *)ballAtColumn:(NSInteger)column row:(NSInteger)row;
 
 - (int)countEmptyCell;
 
