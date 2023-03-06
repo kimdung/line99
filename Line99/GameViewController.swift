@@ -17,9 +17,6 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let cache = LNTextureCache.sharedInstance() as? LNTextureCache {
-            cache.addTexture(fromPlist: "balls")
-        }
 
         if let view = self.gridView as! SKView? {
             // Load the SKScene from 'GameScene.sks'
@@ -43,7 +40,7 @@ class GameViewController: UIViewController {
 //            scene.addTiles()
 //            scene.level = level
 
-            scene = GameScene(size: CGSize(width: 350, height: 350))
+            scene = GameScene(size: CGSize(width: 360, height: 360))
 //            scene.level = level
 
             scene.scaleMode = .aspectFill

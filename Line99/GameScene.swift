@@ -20,7 +20,8 @@ class GameScene: SKScene, ObservableObject {
     private var undoArr: [Undo] = []
     var soundOn: Bool = false
 
-    private var ballsLayer: SKNode = SKNode()
+    private let ballsLayer: SKNode = SKNode()
+    private let invisibleNode = SKNode()
 
     private let invalidMoveSound: SKAction = SKAction.playSoundFileNamed("Error.wav", waitForCompletion: false)
     private let moveSound: SKAction = SKAction.playSoundFileNamed("move.wav", waitForCompletion: false)
@@ -31,8 +32,8 @@ class GameScene: SKScene, ObservableObject {
 
     private var touchedCell: Cell? = nil
 
-    private let cellWidth = 35.0
-    private let cellHeight = 36.0
+    private let cellWidth = 40.0
+    private let cellHeight = 40.0
 
     override init(size: CGSize) {
         super.init(size: size)
@@ -52,6 +53,9 @@ class GameScene: SKScene, ObservableObject {
         ballsLayer.position = layerPostion
         addChild(ballsLayer)
 
+        invisibleNode.position = layerPostion
+        invisibleNode.zPosition = 99
+        addChild(invisibleNode)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -108,21 +112,15 @@ class GameScene: SKScene, ObservableObject {
 
     /// Hiện thị ball đang được chọn bằng animation nẩy lên xuống & play âm thanh
     private func showSelectionIndicator(ball: LNBall) {
-        let moveUpAction = SKAction.moveBy(x: 0, y: 3, duration: 0.18)
-        moveUpAction.timingMode = .easeOut
-        let moveDownAction = SKAction.moveBy(x:0, y: -3, duration: 0.18)
-        moveDownAction.timingMode = .easeIn
-        let moveUpDown = SKAction.sequence([moveUpAction, moveDownAction])
-        ball.sprite.run(SKAction.repeatForever(moveUpDown), withKey: "jumping")
-
+        ball.animateJumping()
         if soundOn {
-            ball.sprite.run(jumpingSound)
+            run(jumpingSound)
         }
     }
 
     /// Ẩn ball được chọn bằng cách tắt animation và đưa ball về trung tâm của cell
     private func hideSelectionIndicator(ball: LNBall) {
-        ball.sprite.removeAllActions()
+        ball.stopJumping()
         let centerPoint = point(column: ball.column, row: ball.row)
         let moveToCenterAction = SKAction.move(to: centerPoint, duration: 0.1)
         moveToCenterAction.timingMode = .easeInEaseOut
@@ -131,16 +129,13 @@ class GameScene: SKScene, ObservableObject {
 
 
     /// Tạo spriteNode cho balls, add spriteNode vào ballLayer
-    private func addSprites(forBalls balls: Set<AnyHashable>) {
-        let textureCache = LNTextureCache.sharedInstance() as! LNTextureCache
+    private func addSprites(forBalls balls: Set<LNBall>) {
         for ball in balls {
-            guard let ball = ball as? LNBall, let sprite = textureCache.sprite(withCacheName: ball.spriteName())  else {
+            guard let sprite = ball.sprite  else {
                 return
             }
-
             sprite.position = point(column: ball.column, row: ball.row)
             ballsLayer.addChild(sprite)
-            ball.sprite = sprite
             ball.sprite.alpha = 0
             ball.sprite.zPosition = ballZposition
             if ball.ballType < 0 { // small ball
@@ -182,13 +177,11 @@ class GameScene: SKScene, ObservableObject {
     /// Add các small ball lên màn hình. (Add vào ballLayer)
     /// - Parameter balls: small balls sẽ add
     private func animateAddSmallBalls(_ balls: Set<LNBall>) {
-        let textureCache = LNTextureCache.sharedInstance() as! LNTextureCache
         let duration = 0.2
         for ball in balls {
-            guard let sprite = textureCache.sprite(withCacheName: ball.spriteName()) else {
+            guard let sprite = ball.sprite else {
                 return
             }
-
             sprite.position = point(column: ball.column, row: ball.row)
             sprite.zPosition = ballZposition
             sprite.alpha = 0.0
@@ -200,7 +193,6 @@ class GameScene: SKScene, ObservableObject {
                                                             SKAction.scale(to: 0.4, duration: duration)
                                                            ])])
             sprite.run(action)
-            ball.sprite = sprite
         }
     }
 
@@ -221,15 +213,7 @@ class GameScene: SKScene, ObservableObject {
         if soundOn {
             run(invalidMoveSound)
         }
-        let duration = 0.1
-        let moveRight = SKAction.moveBy(x: 4, y: 0, duration: duration)
-        moveRight.timingMode = .easeInEaseOut
-        let moveLeft = SKAction.moveBy(x: -4, y: 0, duration: duration)
-        moveLeft.timingMode = .easeInEaseOut
-        let shakeAction = SKAction.repeat(SKAction.sequence([moveLeft, moveRight]), count: 2)
-        Task {
-            await ball.sprite.run(shakeAction)
-        }
+        ball.animateShaking()
     }
 
     private func animateMatched(chains: Set<LNChain>) {
@@ -244,11 +228,8 @@ class GameScene: SKScene, ObservableObject {
             }
         }
 
-        let duration = 0.05
-        let frameCount = 8
         for ball in set {
-            let explodeAction = SKAction.animate(with: ball.explodeSpriteTextures() as! [SKTexture], timePerFrame: duration)
-            ball.sprite.run(SKAction.sequence([explodeAction, SKAction.removeFromParent()]))
+            ball.explodeAndRemove()
         }
 
         if soundOn {
@@ -281,10 +262,20 @@ class GameScene: SKScene, ObservableObject {
 
     }
 
+    private func tailFor(ball: LNBall) -> SKEmitterNode {
+        let smoke = SKEmitterNode(fileNamed: "Smoke.sks")!
+        smoke.targetNode = invisibleNode
+        smoke.particleColorSequence = nil
+        smoke.particleColorBlendFactor = 1
+        smoke.particleBlendMode = .alpha
+        smoke.particleColor = UIColor(named: "ball-color-\(ball.ballType)") ?? .red
+        return smoke
+    }
+
     private func animate(move: LNMove) async {
         hideSelectionIndicator(ball: move.ball)
         seletecBall = nil
-
+        move.ball.sprite.addChild(tailFor(ball: move.ball))
         var count = 0
         let path = CGMutablePath()
         let points = move.cellList.array
@@ -298,11 +289,14 @@ class GameScene: SKScene, ObservableObject {
             count += 1
         } while (count < move.cellList.len)
 
-        let duration = 0.04
+        let duration = 0.05
         let moveAction = SKAction.follow(path, asOffset: false, orientToPath: false, duration: duration * Double(move.cellList.len))
         moveAction.timingMode = .easeInEaseOut
 
         await move.ball.sprite.run(moveAction)
+
+
+        move.ball.sprite.removeAllChildren()
 
         // chuyển small ball đến vị trí mới
         if let smallBall = move.smallBall, let sprite = smallBall.sprite {
@@ -385,7 +379,7 @@ class GameScene: SKScene, ObservableObject {
             move.ball = ball
             move.cellList = cellList
 
-            if let smallBall = level.ball(at: toCell), !smallBall.isBigBall {
+            if let smallBall = level.ball(at: toCell), !smallBall.isBig {
                 level.temporaryRemoveSmallBall(smallBall)
                 level.performMove(ball, to: toCell)
                 let emptyCell = level.findEmptyCell()
@@ -411,6 +405,46 @@ class GameScene: SKScene, ObservableObject {
         }
     }
 
+    private func test() {
+        let shape = SKShapeNode()
+        shape.path = UIBezierPath(roundedRect: CGRect(x: -20, y: -20, width: 40, height: 40), cornerRadius: 20).cgPath
+        shape.position = CGPoint(x: frame.midX, y: frame.midY)
+        shape.fillColor = UIColor.red
+        shape.strokeColor = UIColor.blue
+        shape.lineWidth = 10
+        shape.zPosition = 500
+
+
+        let intensity = 1.0
+        let emitter = SKEmitterNode()
+        let particleTexture = SKTexture(imageNamed: "spark")
+        emitter.zPosition = 500
+        emitter.particleTexture = particleTexture
+        emitter.particleBirthRate = 4000 * intensity
+        emitter.numParticlesToEmit = Int(400 * intensity)
+        emitter.particleLifetime = 2.0
+//        emitter.emissionAngle = CGFloat(90.0).degreesToRadians()
+//        emitter.emissionAngleRange = CGFloat(360.0).degreesToRadians()
+        emitter.particleSpeed = 600 * intensity
+        emitter.particleSpeedRange = 1000 * intensity
+        emitter.particleAlpha = 1.0
+        emitter.particleAlphaRange = 0.25
+        emitter.particleScale = 1.2
+        emitter.particleScaleRange = 0.2
+        emitter.particleScaleSpeed = -1.5
+        emitter.particleColor = SKColor.blue
+        emitter.particleColorBlendFactor = 1
+        emitter.particleBlendMode = SKBlendMode.add
+        emitter.position = CGPoint(x: 200, y: 1)
+//        emitter.run(SKAction.removeFromParentAfterDelay(2.0))
+
+        self.ballsLayer.addChild(emitter)
+
+        emitter.run(SKAction.sequence([SKAction.wait(forDuration: 2), SKAction.removeFromParent()]))
+
+
+
+    }
 
 }
 
@@ -426,6 +460,8 @@ extension GameScene {
             return
         }
         touchedCell = cell
+
+//        test()
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -464,7 +500,7 @@ extension GameScene {
             return
         }
 
-        if let ball = level.ball(at: cell), ball.isBigBall {
+        if let ball = level.ball(at: cell), ball.isBig {
             if seletecBall == ball {
                 hideSelectionIndicator(ball: ball)
                 seletecBall = nil
@@ -549,7 +585,7 @@ extension GameScene {
         var count = move.cellList.len - 1
         let path = CGMutablePath()
         let points = move.cellList.array
-
+        move.ball.sprite.addChild(tailFor(ball: move.ball))
         var p: CGPoint = point(column: points[count].column, row: points[count].row)
         path.move(to: p)
         count -= 1
@@ -560,13 +596,13 @@ extension GameScene {
             count -= 1
         } while (count >= 0)
 
-        let duration = 0.04
+        let duration = 0.05
         let moveAction = SKAction.follow(path, asOffset: false, orientToPath: false, duration: duration * Double(move.cellList.len))
         moveAction.timingMode = .easeInEaseOut
 
         Task {
             await move.ball.sprite.run(moveAction)
-
+            move.ball.sprite.removeAllChildren()
             // chuyển small ball về vị trí ban đầu
             if let smallBall = move.smallBall, let sprite = smallBall.sprite {
                 let endCell = move.cellList.array[move.cellList.len - 1]
@@ -588,18 +624,29 @@ extension GameScene {
         }
 
         let duration = 0.05
-        let textureCache = LNTextureCache.sharedInstance() as! LNTextureCache
+//        let textureCache = LNTextureCache.sharedInstance() as! LNTextureCache
 
+//        return await withTaskGroup(of: Void.self) { group in
+//            for ball in set {
+//                ball.sprite = textureCache.sprite(withCacheName: ball.explodedSpriteName())
+//                ball.sprite.position = point(column: ball.column, row: ball.row)
+//                ball.sprite.zPosition = ballZposition
+//                ballsLayer.addChild(ball.sprite)
+//
+//                let undoExplodeAction = SKAction.animate(with: ball.undoExplodedSpriteTextures() as! [SKTexture], timePerFrame: duration)
+//                group.addTask {
+//                    await ball.sprite.run(undoExplodeAction)
+//                }
+//            }
+//        }
         return await withTaskGroup(of: Void.self) { group in
             for ball in set {
-                ball.sprite = textureCache.sprite(withCacheName: ball.explodedSpriteName())
+                ball.prepareUndoExplode()
                 ball.sprite.position = point(column: ball.column, row: ball.row)
                 ball.sprite.zPosition = ballZposition
                 ballsLayer.addChild(ball.sprite)
-
-                let undoExplodeAction = SKAction.animate(with: ball.undoExplodedSpriteTextures() as! [SKTexture], timePerFrame: duration)
                 group.addTask {
-                    await ball.sprite.run(undoExplodeAction)
+                    await  ball.undoExplode()
                 }
             }
         }

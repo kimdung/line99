@@ -16,11 +16,9 @@
 		CE6E57A227313F9B005AC466 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE6E57A127313F9B005AC466 /* Assets.xcassets */; };
 		CE6E57A527313F9B005AC466 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE6E57A327313F9B005AC466 /* LaunchScreen.storyboard */; };
 		CE6E57C827314078005AC466 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E57C727314078005AC466 /* Matrix.swift */; };
-		CE6E57CF2732AB86005AC466 /* TextureCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E57CE2732AB86005AC466 /* TextureCache.swift */; };
 		CE7CF1312738DD8A00B4B5A4 /* UIImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */; };
 		CEAF9CBF29A75623007F0503 /* LNBall.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CBE29A75623007F0503 /* LNBall.m */; };
 		CEAF9CC829A75630007F0503 /* LNChain.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC229A75630007F0503 /* LNChain.m */; };
-		CEAF9CC929A75630007F0503 /* LNTextureCache.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC329A75630007F0503 /* LNTextureCache.m */; };
 		CEAF9CCA29A75630007F0503 /* LNLevel.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC529A75630007F0503 /* LNLevel.m */; };
 		CEAF9CCB29A75630007F0503 /* LNMove.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC629A75630007F0503 /* LNMove.m */; };
 		CEAF9CD629A7581E007F0503 /* move.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD129A7581E007F0503 /* move.wav */; };
@@ -33,9 +31,13 @@
 		CEAF9D8029A75878007F0503 /* config_bt@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7829A75878007F0503 /* config_bt@2x.png */; };
 		CEAF9D8129A75878007F0503 /* balls-hd.plist in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7929A75878007F0503 /* balls-hd.plist */; };
 		CEAF9D8229A75878007F0503 /* balls-hd.png in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7A29A75878007F0503 /* balls-hd.png */; };
-		CEAF9D8329A75878007F0503 /* balls.plist in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7B29A75878007F0503 /* balls.plist */; };
 		CEAF9D8429A75879007F0503 /* balls-ipad-hd.png in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7C29A75878007F0503 /* balls-ipad-hd.png */; };
-		CEAF9D8529A75879007F0503 /* balls.png in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7D29A75878007F0503 /* balls.png */; };
+		CED678DC29B2ECE4007A4140 /* MyParticle.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678DB29B2ECE4007A4140 /* MyParticle.sks */; };
+		CED678DE29B2ED0E007A4140 /* Fire.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678DD29B2ED0E007A4140 /* Fire.sks */; };
+		CED678E029B2EF90007A4140 /* Smoke.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678DF29B2EF90007A4140 /* Smoke.sks */; };
+		CED678E229B2EFBE007A4140 /* Spark.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678E129B2EFBE007A4140 /* Spark.sks */; };
+		CED678E429B2F27F007A4140 /* Magic.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678E329B2F27F007A4140 /* Magic.sks */; };
+		CED678E929B5A33A007A4140 /* Ball+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED678E829B5A33A007A4140 /* Ball+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,15 +51,12 @@
 		CE6E57A127313F9B005AC466 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE6E57A427313F9B005AC466 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CE6E57C727314078005AC466 /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
-		CE6E57CE2732AB86005AC466 /* TextureCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextureCache.swift; sourceTree = "<group>"; };
 		CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Extension.swift"; sourceTree = "<group>"; };
 		CEAF9CBC29A75622007F0503 /* Line99-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Line99-Bridging-Header.h"; sourceTree = "<group>"; };
 		CEAF9CBD29A75623007F0503 /* LNBall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNBall.h; sourceTree = "<group>"; };
 		CEAF9CBE29A75623007F0503 /* LNBall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNBall.m; sourceTree = "<group>"; };
 		CEAF9CC029A75630007F0503 /* LNLevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNLevel.h; sourceTree = "<group>"; };
-		CEAF9CC129A75630007F0503 /* LNTextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNTextureCache.h; sourceTree = "<group>"; };
 		CEAF9CC229A75630007F0503 /* LNChain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNChain.m; sourceTree = "<group>"; };
-		CEAF9CC329A75630007F0503 /* LNTextureCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNTextureCache.m; sourceTree = "<group>"; };
 		CEAF9CC429A75630007F0503 /* LNMove.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNMove.h; sourceTree = "<group>"; };
 		CEAF9CC529A75630007F0503 /* LNLevel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNLevel.m; sourceTree = "<group>"; };
 		CEAF9CC629A75630007F0503 /* LNMove.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNMove.m; sourceTree = "<group>"; };
@@ -75,9 +74,13 @@
 		CEAF9D7829A75878007F0503 /* config_bt@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "config_bt@2x.png"; sourceTree = "<group>"; };
 		CEAF9D7929A75878007F0503 /* balls-hd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "balls-hd.plist"; sourceTree = "<group>"; };
 		CEAF9D7A29A75878007F0503 /* balls-hd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "balls-hd.png"; sourceTree = "<group>"; };
-		CEAF9D7B29A75878007F0503 /* balls.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = balls.plist; sourceTree = "<group>"; };
 		CEAF9D7C29A75878007F0503 /* balls-ipad-hd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "balls-ipad-hd.png"; sourceTree = "<group>"; };
-		CEAF9D7D29A75878007F0503 /* balls.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = balls.png; sourceTree = "<group>"; };
+		CED678DB29B2ECE4007A4140 /* MyParticle.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = MyParticle.sks; sourceTree = "<group>"; };
+		CED678DD29B2ED0E007A4140 /* Fire.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Fire.sks; sourceTree = "<group>"; };
+		CED678DF29B2EF90007A4140 /* Smoke.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Smoke.sks; sourceTree = "<group>"; };
+		CED678E129B2EFBE007A4140 /* Spark.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Spark.sks; sourceTree = "<group>"; };
+		CED678E329B2F27F007A4140 /* Magic.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Magic.sks; sourceTree = "<group>"; };
+		CED678E829B5A33A007A4140 /* Ball+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Ball+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,25 +121,18 @@
 				CE6E579E27313F98005AC466 /* Main.storyboard */,
 				CE6E57A327313F9B005AC466 /* LaunchScreen.storyboard */,
 				CE6E57C727314078005AC466 /* Matrix.swift */,
-				CE6E57CE2732AB86005AC466 /* TextureCache.swift */,
 				CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */,
-				CEAF9CCC29A75654007F0503 /* LNGameScene.h */,
-				CEAF9CCD29A75654007F0503 /* LNGameScene.m */,
-				CEAF9CBD29A75623007F0503 /* LNBall.h */,
-				CEAF9CBE29A75623007F0503 /* LNBall.m */,
-				CEAF9CC729A75630007F0503 /* LNChain.h */,
-				CEAF9CC229A75630007F0503 /* LNChain.m */,
-				CEAF9CC029A75630007F0503 /* LNLevel.h */,
-				CEAF9CC529A75630007F0503 /* LNLevel.m */,
-				CEAF9CC429A75630007F0503 /* LNMove.h */,
-				CEAF9CC629A75630007F0503 /* LNMove.m */,
-				CEAF9CC129A75630007F0503 /* LNTextureCache.h */,
-				CEAF9CC329A75630007F0503 /* LNTextureCache.m */,
-				CEAF9CCF29A7568A007F0503 /* config.h */,
-				CEAF9CBC29A75622007F0503 /* Line99-Bridging-Header.h */,
+				CED678E829B5A33A007A4140 /* Ball+Extension.swift */,
+				CED678E729B5A30F007A4140 /* OriginCode */,
 				CE6E57A127313F9B005AC466 /* Assets.xcassets */,
+				CEAF9CBC29A75622007F0503 /* Line99-Bridging-Header.h */,
 				CEAF9D7529A7586B007F0503 /* Images */,
 				CEAF9CD029A7581E007F0503 /* Sounds */,
+				CED678DB29B2ECE4007A4140 /* MyParticle.sks */,
+				CED678DD29B2ED0E007A4140 /* Fire.sks */,
+				CED678DF29B2EF90007A4140 /* Smoke.sks */,
+				CED678E129B2EFBE007A4140 /* Spark.sks */,
+				CED678E329B2F27F007A4140 /* Magic.sks */,
 			);
 			path = Line99;
 			sourceTree = "<group>";
@@ -160,12 +156,28 @@
 				CEAF9D7A29A75878007F0503 /* balls-hd.png */,
 				CEAF9D7629A75878007F0503 /* balls-ipad-hd.plist */,
 				CEAF9D7C29A75878007F0503 /* balls-ipad-hd.png */,
-				CEAF9D7B29A75878007F0503 /* balls.plist */,
-				CEAF9D7D29A75878007F0503 /* balls.png */,
 				CEAF9D7729A75878007F0503 /* button_bg@2x.png */,
 				CEAF9D7829A75878007F0503 /* config_bt@2x.png */,
 			);
 			path = Images;
+			sourceTree = "<group>";
+		};
+		CED678E729B5A30F007A4140 /* OriginCode */ = {
+			isa = PBXGroup;
+			children = (
+				CEAF9CCC29A75654007F0503 /* LNGameScene.h */,
+				CEAF9CCD29A75654007F0503 /* LNGameScene.m */,
+				CEAF9CBD29A75623007F0503 /* LNBall.h */,
+				CEAF9CBE29A75623007F0503 /* LNBall.m */,
+				CEAF9CC729A75630007F0503 /* LNChain.h */,
+				CEAF9CC229A75630007F0503 /* LNChain.m */,
+				CEAF9CC029A75630007F0503 /* LNLevel.h */,
+				CEAF9CC529A75630007F0503 /* LNLevel.m */,
+				CEAF9CC429A75630007F0503 /* LNMove.h */,
+				CEAF9CC629A75630007F0503 /* LNMove.m */,
+				CEAF9CCF29A7568A007F0503 /* config.h */,
+			);
+			path = OriginCode;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -231,22 +243,25 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEAF9D8529A75879007F0503 /* balls.png in Resources */,
 				CEAF9D8229A75878007F0503 /* balls-hd.png in Resources */,
+				CED678E029B2EF90007A4140 /* Smoke.sks in Resources */,
 				CE6E57A027313F98005AC466 /* Main.storyboard in Resources */,
 				CEAF9D7F29A75878007F0503 /* button_bg@2x.png in Resources */,
-				CEAF9D8329A75878007F0503 /* balls.plist in Resources */,
 				CEAF9D8029A75878007F0503 /* config_bt@2x.png in Resources */,
 				CEAF9D7E29A75878007F0503 /* balls-ipad-hd.plist in Resources */,
 				CEAF9CD829A7581E007F0503 /* destroy.wav in Resources */,
 				CE6E579727313F98005AC466 /* GameScene.sks in Resources */,
 				CE6E57A227313F9B005AC466 /* Assets.xcassets in Resources */,
+				CED678DC29B2ECE4007A4140 /* MyParticle.sks in Resources */,
 				CEAF9CD929A7581E007F0503 /* Drip.wav in Resources */,
 				CEAF9CD729A7581E007F0503 /* jump.wav in Resources */,
+				CED678DE29B2ED0E007A4140 /* Fire.sks in Resources */,
 				CEAF9D8129A75878007F0503 /* balls-hd.plist in Resources */,
 				CEAF9CD629A7581E007F0503 /* move.wav in Resources */,
 				CEAF9D8429A75879007F0503 /* balls-ipad-hd.png in Resources */,
+				CED678E429B2F27F007A4140 /* Magic.sks in Resources */,
 				CE6E57A527313F9B005AC466 /* LaunchScreen.storyboard in Resources */,
+				CED678E229B2EFBE007A4140 /* Spark.sks in Resources */,
 				CE6E579927313F98005AC466 /* Actions.sks in Resources */,
 				CEAF9CDA29A7581E007F0503 /* Error.wav in Resources */,
 			);
@@ -261,9 +276,8 @@
 			files = (
 				CEAF9CCA29A75630007F0503 /* LNLevel.m in Sources */,
 				CEAF9CBF29A75623007F0503 /* LNBall.m in Sources */,
-				CEAF9CC929A75630007F0503 /* LNTextureCache.m in Sources */,
+				CED678E929B5A33A007A4140 /* Ball+Extension.swift in Sources */,
 				CEAF9CC829A75630007F0503 /* LNChain.m in Sources */,
-				CE6E57CF2732AB86005AC466 /* TextureCache.swift in Sources */,
 				CE6E57C827314078005AC466 /* Matrix.swift in Sources */,
 				CE6E579B27313F98005AC466 /* GameScene.swift in Sources */,
 				CE7CF1312738DD8A00B4B5A4 /* UIImage+Extension.swift in Sources */,
@@ -419,7 +433,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = H5CC864Q28;
+				DEVELOPMENT_TEAM = L2RJ96F384;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -450,7 +464,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = H5CC864Q28;
+				DEVELOPMENT_TEAM = L2RJ96F384;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;

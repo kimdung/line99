@@ -6,6 +6,5 @@
 #import "LNChain.h"
 #import "LNLevel.h"
 #import "LNMove.h"
-#import "LNTextureCache.h"
 #import "config.h"
 #import "LNGameScene.h"
