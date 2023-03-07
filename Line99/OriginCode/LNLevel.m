@@ -357,9 +357,9 @@
         x = queuei[fist];
         y = queuej[fist];
         fist++;
-        for (k = 0; k < 4; k++) {
-            xx = x + u[k];
-            yy = y + v[k];
+        for (int kkkk = 0; kkkk < 4; kkkk++) {
+            xx = x + u[kkkk];
+            yy = y + v[kkkk];
             if (xx == i1 && yy == j1) {
                 dadi[i1][j1] = x;
                 dadj[i1][j1] = y;

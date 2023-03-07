@@ -8,12 +8,83 @@
 import Foundation
 import SpriteKit
 
-extension LNBall {
+class Ball: Codable {
+
+    var column: Int
+    var row: Int
+    var ballType: Int
+    var sprite: SKSpriteNode
+    var spriteName: String
+
+
+    private let spriteNames = [ "jump_1_1.png",
+                                "jump_2_1.png",
+                                "jump_3_1.png",
+                                "jump_4_1.png",
+                                "jump_5_1.png",
+                                "jump_6_1.png",
+                                "jump_7_1.png"]
+
+    init(type: Int, column: Int, row: Int) {
+        self.ballType = type
+        self.column = column
+        self.row = row
+
+        let ballType = type < 0 ? -type : type
+        spriteName = spriteNames[ballType - 1]
+        let texture = SKTexture.init(imageNamed: spriteName)
+        self.sprite = SKSpriteNode(texture: texture)
+    }
+
+    private enum CodingKeys : String, CodingKey {
+        case column
+        case row
+        case ballType
+    }
+
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let column = try container.decode(Int.self, forKey: .column)
+        let row = try container.decode(Int.self, forKey: .row)
+        let type = try container.decode(Int.self, forKey: .ballType)
+        self.ballType = type
+        self.column = column
+        self.row = row
+        let ballType = type < 0 ? -type : type
+        spriteName = spriteNames[ballType - 1]
+        let texture = SKTexture.init(imageNamed: spriteName)
+        self.sprite = SKSpriteNode(texture: texture)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(column, forKey: .column)
+        try container.encode(row, forKey: .row)
+        try container.encode(ballType, forKey: .ballType)
+    }
+}
+
+
+
+extension Ball: Hashable {
+    static func == (lhs: Ball, rhs: Ball) -> Bool {
+        return lhs.row == rhs.row &&
+        lhs.column == rhs.column &&
+        lhs.ballType == rhs.ballType
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(column)
+        hasher.combine(row)
+        hasher.combine(ballType)
+    }
+}
+
+extension Ball {
+
     var isBig: Bool {
         return ballType > 0
     }
-
-
 
     func animateJumping() {
         let moveUpAction = SKAction.moveBy(x: 0, y: 3, duration: 0.18)

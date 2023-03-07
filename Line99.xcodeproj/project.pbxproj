@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		CE6E579527313F98005AC466 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E579427313F98005AC466 /* AppDelegate.swift */; };
-		CE6E579727313F98005AC466 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = CE6E579627313F98005AC466 /* GameScene.sks */; };
-		CE6E579927313F98005AC466 /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = CE6E579827313F98005AC466 /* Actions.sks */; };
 		CE6E579B27313F98005AC466 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E579A27313F98005AC466 /* GameScene.swift */; };
 		CE6E579D27313F98005AC466 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E579C27313F98005AC466 /* GameViewController.swift */; };
 		CE6E57A027313F98005AC466 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE6E579E27313F98005AC466 /* Main.storyboard */; };
@@ -17,10 +15,6 @@
 		CE6E57A527313F9B005AC466 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE6E57A327313F9B005AC466 /* LaunchScreen.storyboard */; };
 		CE6E57C827314078005AC466 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E57C727314078005AC466 /* Matrix.swift */; };
 		CE7CF1312738DD8A00B4B5A4 /* UIImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */; };
-		CEAF9CBF29A75623007F0503 /* LNBall.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CBE29A75623007F0503 /* LNBall.m */; };
-		CEAF9CC829A75630007F0503 /* LNChain.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC229A75630007F0503 /* LNChain.m */; };
-		CEAF9CCA29A75630007F0503 /* LNLevel.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC529A75630007F0503 /* LNLevel.m */; };
-		CEAF9CCB29A75630007F0503 /* LNMove.m in Sources */ = {isa = PBXBuildFile; fileRef = CEAF9CC629A75630007F0503 /* LNMove.m */; };
 		CEAF9CD629A7581E007F0503 /* move.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD129A7581E007F0503 /* move.wav */; };
 		CEAF9CD729A7581E007F0503 /* jump.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD229A7581E007F0503 /* jump.wav */; };
 		CEAF9CD829A7581E007F0503 /* destroy.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD329A7581E007F0503 /* destroy.wav */; };
@@ -37,14 +31,17 @@
 		CED678E029B2EF90007A4140 /* Smoke.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678DF29B2EF90007A4140 /* Smoke.sks */; };
 		CED678E229B2EFBE007A4140 /* Spark.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678E129B2EFBE007A4140 /* Spark.sks */; };
 		CED678E429B2F27F007A4140 /* Magic.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678E329B2F27F007A4140 /* Magic.sks */; };
-		CED678E929B5A33A007A4140 /* Ball+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED678E829B5A33A007A4140 /* Ball+Extension.swift */; };
+		CED678E929B5A33A007A4140 /* Ball.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED678E829B5A33A007A4140 /* Ball.swift */; };
+		CED678EC29B6DE06007A4140 /* BallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED678EA29B6C77D007A4140 /* BallManager.swift */; };
+		CED678EE29B6E375007A4140 /* Move.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED678ED29B6E375007A4140 /* Move.swift */; };
+		CED678F029B71914007A4140 /* Chain.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED678EF29B71914007A4140 /* Chain.swift */; };
+		CED678F329B71C6F007A4140 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED678F229B71C6F007A4140 /* Config.swift */; };
+		CED678F529B75D23007A4140 /* DataSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED678F429B75D23007A4140 /* DataSaver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		CE6E579127313F98005AC466 /* Line99.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Line99.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE6E579427313F98005AC466 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		CE6E579627313F98005AC466 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
-		CE6E579827313F98005AC466 /* Actions.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Actions.sks; sourceTree = "<group>"; };
 		CE6E579A27313F98005AC466 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		CE6E579C27313F98005AC466 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		CE6E579F27313F98005AC466 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -80,7 +77,12 @@
 		CED678DF29B2EF90007A4140 /* Smoke.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Smoke.sks; sourceTree = "<group>"; };
 		CED678E129B2EFBE007A4140 /* Spark.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Spark.sks; sourceTree = "<group>"; };
 		CED678E329B2F27F007A4140 /* Magic.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Magic.sks; sourceTree = "<group>"; };
-		CED678E829B5A33A007A4140 /* Ball+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Ball+Extension.swift"; sourceTree = "<group>"; };
+		CED678E829B5A33A007A4140 /* Ball.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ball.swift; sourceTree = "<group>"; };
+		CED678EA29B6C77D007A4140 /* BallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallManager.swift; sourceTree = "<group>"; };
+		CED678ED29B6E375007A4140 /* Move.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Move.swift; sourceTree = "<group>"; };
+		CED678EF29B71914007A4140 /* Chain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chain.swift; sourceTree = "<group>"; };
+		CED678F229B71C6F007A4140 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		CED678F429B75D23007A4140 /* DataSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSaver.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,15 +116,18 @@
 			isa = PBXGroup;
 			children = (
 				CE6E579427313F98005AC466 /* AppDelegate.swift */,
-				CE6E579627313F98005AC466 /* GameScene.sks */,
-				CE6E579827313F98005AC466 /* Actions.sks */,
 				CE6E579A27313F98005AC466 /* GameScene.swift */,
 				CE6E579C27313F98005AC466 /* GameViewController.swift */,
 				CE6E579E27313F98005AC466 /* Main.storyboard */,
 				CE6E57A327313F9B005AC466 /* LaunchScreen.storyboard */,
 				CE6E57C727314078005AC466 /* Matrix.swift */,
 				CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */,
-				CED678E829B5A33A007A4140 /* Ball+Extension.swift */,
+				CED678E829B5A33A007A4140 /* Ball.swift */,
+				CED678EA29B6C77D007A4140 /* BallManager.swift */,
+				CED678ED29B6E375007A4140 /* Move.swift */,
+				CED678EF29B71914007A4140 /* Chain.swift */,
+				CED678F229B71C6F007A4140 /* Config.swift */,
+				CED678F429B75D23007A4140 /* DataSaver.swift */,
 				CED678E729B5A30F007A4140 /* OriginCode */,
 				CE6E57A127313F9B005AC466 /* Assets.xcassets */,
 				CEAF9CBC29A75622007F0503 /* Line99-Bridging-Header.h */,
@@ -250,7 +255,6 @@
 				CEAF9D8029A75878007F0503 /* config_bt@2x.png in Resources */,
 				CEAF9D7E29A75878007F0503 /* balls-ipad-hd.plist in Resources */,
 				CEAF9CD829A7581E007F0503 /* destroy.wav in Resources */,
-				CE6E579727313F98005AC466 /* GameScene.sks in Resources */,
 				CE6E57A227313F9B005AC466 /* Assets.xcassets in Resources */,
 				CED678DC29B2ECE4007A4140 /* MyParticle.sks in Resources */,
 				CEAF9CD929A7581E007F0503 /* Drip.wav in Resources */,
@@ -262,7 +266,6 @@
 				CED678E429B2F27F007A4140 /* Magic.sks in Resources */,
 				CE6E57A527313F9B005AC466 /* LaunchScreen.storyboard in Resources */,
 				CED678E229B2EFBE007A4140 /* Spark.sks in Resources */,
-				CE6E579927313F98005AC466 /* Actions.sks in Resources */,
 				CEAF9CDA29A7581E007F0503 /* Error.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -274,16 +277,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEAF9CCA29A75630007F0503 /* LNLevel.m in Sources */,
-				CEAF9CBF29A75623007F0503 /* LNBall.m in Sources */,
-				CED678E929B5A33A007A4140 /* Ball+Extension.swift in Sources */,
-				CEAF9CC829A75630007F0503 /* LNChain.m in Sources */,
+				CED678F529B75D23007A4140 /* DataSaver.swift in Sources */,
+				CED678E929B5A33A007A4140 /* Ball.swift in Sources */,
+				CED678F329B71C6F007A4140 /* Config.swift in Sources */,
+				CED678EE29B6E375007A4140 /* Move.swift in Sources */,
 				CE6E57C827314078005AC466 /* Matrix.swift in Sources */,
 				CE6E579B27313F98005AC466 /* GameScene.swift in Sources */,
 				CE7CF1312738DD8A00B4B5A4 /* UIImage+Extension.swift in Sources */,
 				CE6E579D27313F98005AC466 /* GameViewController.swift in Sources */,
 				CE6E579527313F98005AC466 /* AppDelegate.swift in Sources */,
-				CEAF9CCB29A75630007F0503 /* LNMove.m in Sources */,
+				CED678F029B71914007A4140 /* Chain.swift in Sources */,
+				CED678EC29B6DE06007A4140 /* BallManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -50,47 +50,11 @@
 //    return arr;
 //}
 
-- (NSString*)explodedSpriteName {
-    NSString *name = [NSString stringWithFormat:@"explode_%ld_%d.png", (long)self.ballType, 8];
-    return name;
-}
-
-//- (NSArray*)undoExplodedSpriteTextures {
-//    NSMutableArray *arr = [NSMutableArray array];
-//    NSInteger ballType = self.ballType;
-//    ballType = ballType < 0 ? -ballType : ballType;
-//    for (int i = 7; i >= 1; i--) {
-//        NSString *name = [NSString stringWithFormat:@"explode_%ld_%d.png", (long)ballType, i];
-//        SKTexture *texture = [[LNTextureCache sharedInstance] textureWithCacheName:name];
-//        [arr addObject:texture];
-//    }
-//    SKTexture *texture = [[LNTextureCache sharedInstance] textureWithCacheName:[self spriteName]];
-//    [arr addObject:texture];
-//    return arr;
+//- (NSString*)explodedSpriteName {
+//    NSString *name = [NSString stringWithFormat:@"explode_%ld_%d.png", (long)self.ballType, 8];
+//    return name;
 //}
 
-//- (void)explodeAndRemove {
-//    SKAction *explodeAction = [SKAction animateWithTextures:[self explodeSpriteTextures] timePerFrame:0.05];
-//    SKAction *removeAction = [SKAction removeFromParent];
-//    [self.sprite runAction:[SKAction sequence:@[explodeAction, removeAction]]];
-//}
-
-
-
-
-//- (NSString *)highlightedSpriteName {
-//    static NSString * const highlightedSpriteNames[] = {
-//        @"Croissant-Highlighted",
-//        @"Cupcake-Highlighted",
-//        @"Danish-Highlighted",
-//        @"Donut-Highlighted",
-//        @"Macaroon-Highlighted",
-//        @"SugarCookie-Highlighted",
-//    };
-//    NSInteger ballType = self.ballType;
-//    ballType = ballType < 0 ? -ballType : ballType;
-//    return highlightedSpriteNames[ballType - 1];
-//}
 
 
 - (NSString *)description {

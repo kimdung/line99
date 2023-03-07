@@ -54,7 +54,11 @@ class GameViewController: UIViewController {
     }
 
     @IBAction func undoButtonOnClicked(_ sender: Any) {
+//        scene.undo()
         scene.undo()
+    }
+    @IBAction func saveButtonOnClicked(_ sender: Any) {
+        scene.save()
     }
     /*
     private func beginNextTurn() {

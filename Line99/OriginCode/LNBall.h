@@ -18,11 +18,6 @@ static const NSUInteger NumBallTypes = 7;
 @property (strong, nonatomic) SKSpriteNode *sprite;
 @property (readonly, nonatomic) NSString *spriteName;
 
-//- (NSString *)spriteName;
-//
-//- (NSString*)explodedSpriteName;
-//- (NSArray*)undoExplodedSpriteTextures;
-
 - (id)initWithType:(NSInteger) type column:(NSInteger)column row:(NSInteger)row;
 
 @end
