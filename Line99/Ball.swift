@@ -64,8 +64,6 @@ class Ball: Codable {
     }
 }
 
-
-
 extension Ball: Hashable {
     static func == (lhs: Ball, rhs: Ball) -> Bool {
         return lhs.row == rhs.row &&
@@ -120,10 +118,10 @@ extension Ball {
         return textureArr
     }
 
-    func explodeAndRemove() {
+    func explodeAndRemove() async {
         let explodeAction = SKAction.animate(with: explodeSpriteTextures, timePerFrame: 0.05)
         let removeAction = SKAction.removeFromParent()
-        sprite.run(SKAction.sequence([explodeAction, removeAction]))
+        await sprite.run(SKAction.sequence([explodeAction, removeAction]))
     }
 
     func prepareUndoExplode() {
@@ -134,10 +132,6 @@ extension Ball {
     func undoExplode() async {
         var textureArr: [SKTexture] = explodeSpriteTextures.reversed()
         textureArr.append(SKTexture.init(imageNamed: spriteName))
-//        guard let firstTexture = textureArr.first else {
-//            return
-//        }
-//        sprite = SKSpriteNode(texture: firstTexture)
         let undoExplodeAction = SKAction.animate(with: textureArr, timePerFrame: 0.05)
         await sprite.run(undoExplodeAction)
     }

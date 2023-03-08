@@ -12,7 +12,6 @@ class Move: Codable {
     var cellList: CellList!
     var smallBall: Ball?
     var emptyCell: Cell?
-
 }
 
 class UndoMove: Codable {
@@ -21,15 +20,4 @@ class UndoMove: Codable {
     var justExplodedChains: Set<Chain> = Set()
     var justMoved: Move = Move()
     var justAddedScore: UInt = 0
-
-//    private enum CodingKeys: String, CodingKey {
-//        case justAddedBigBalls
-//        case justAdddedSmallBalls
-//        case justExplodedChains
-//        case justMoved
-//        case justAddedScore
-//    }
-
-
-
 }

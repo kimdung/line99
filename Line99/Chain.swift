@@ -7,15 +7,7 @@
 
 import Foundation
 
-class Chain: Hashable, Codable {
-    static func == (lhs: Chain, rhs: Chain) -> Bool {
-        return lhs.balls == rhs.balls
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(balls)
-    }
-
+class Chain:  Codable {
     private enum CodingKeys: String, CodingKey {
         case balls
         case chainType
@@ -47,13 +39,11 @@ class Chain: Hashable, Codable {
         try container.encode(score, forKey: .score)
     }
 
-    var balls: [Ball] = []
+    private(set) var balls: [Ball] = []
     var chainType: ChainType!
     var score: Int = 0
 
-    init() {
-        
-    }
+    init() {}
 
     func addBall(_ ball: Ball?) {
         guard let ball = ball else {
@@ -62,4 +52,14 @@ class Chain: Hashable, Codable {
         balls.append(ball)
     }
 
+}
+
+extension Chain: Hashable {
+    static func == (lhs: Chain, rhs: Chain) -> Bool {
+        return lhs.balls == rhs.balls
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(balls)
+    }
 }

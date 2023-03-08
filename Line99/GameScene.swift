@@ -13,8 +13,10 @@ class GameScene: SKScene, ObservableObject {
 
     private let backgroundZPostion: CGFloat = 1
     private let gridZPosition: CGFloat = 2
-    private let ballZposition: CGFloat = 100
-    private let scoreZposition: CGFloat = 101
+    private let smallBallZPosition: CGFloat = 98
+    private let tailAnimationZPosition: CGFloat = 99
+    private let bigBallZPosition: CGFloat = 100
+    private let scoreZPosition: CGFloat = 101
 
     private var ballManager: BallManager = BallManager()
 
@@ -22,7 +24,9 @@ class GameScene: SKScene, ObservableObject {
     var soundOn: Bool = false
 
     private let ballsLayer: SKNode = SKNode()
-    private let invisibleNode = SKNode()
+    private var invisibleNode: SKNode = SKNode() // node chứa hiệu ứng di chuyển của ball
+
+    private var isBusy = false
 
     private let invalidMoveSound: SKAction = SKAction.playSoundFileNamed("Error.wav", waitForCompletion: false)
     private let moveSound: SKAction = SKAction.playSoundFileNamed("move.wav", waitForCompletion: false)
@@ -55,7 +59,7 @@ class GameScene: SKScene, ObservableObject {
         addChild(ballsLayer)
 
         invisibleNode.position = layerPostion
-        invisibleNode.zPosition = 99
+        invisibleNode.zPosition = tailAnimationZPosition
         addChild(invisibleNode)
     }
 
@@ -151,18 +155,20 @@ class GameScene: SKScene, ObservableObject {
             sprite.position = point(column: ball.column, row: ball.row)
             ballsLayer.addChild(sprite)
             ball.sprite.alpha = 0
-            ball.sprite.zPosition = ballZposition
+
             if ball.ballType < 0 { // small ball
                 ball.sprite.xScale = 0.1
                 ball.sprite.yScale = 0.1
+                ball.sprite.zPosition = smallBallZPosition
                 let action = SKAction.sequence([SKAction.wait(forDuration: 0.25, withRange: 0.5),
                                                 SKAction.group([SKAction.fadeIn(withDuration: 0.25),
-                                                                SKAction.scale(to: 0.4, duration: 0.25)
+                                                                SKAction.scale(to: 0.5, duration: 0.25)
                                                                ])])
                 ball.sprite.run(action)
             } else { // big ball
-                ball.sprite.xScale = 0.4
-                ball.sprite.yScale = 0.4
+                ball.sprite.xScale = 0.5
+                ball.sprite.yScale = 0.5
+                ball.sprite.zPosition = bigBallZPosition
                 let action = SKAction.sequence([SKAction.wait(forDuration: 0.25, withRange: 0.5),
                                                 SKAction.group([SKAction.fadeIn(withDuration: 0.25),
                                                                 SKAction.scale(to: 1.0, duration: 0.25)
@@ -179,7 +185,7 @@ class GameScene: SKScene, ObservableObject {
         return await withTaskGroup(of: Void.self) { group in
             let duration: TimeInterval = 0.2
             for ball in balls {
-                ball.sprite.zPosition = ballZposition
+                ball.sprite.zPosition = bigBallZPosition
                 group.addTask {
                     await ball.sprite.run(SKAction.scale(to: 1.0, duration: duration))
                 }
@@ -190,25 +196,25 @@ class GameScene: SKScene, ObservableObject {
 
     /// Add các small ball lên màn hình. (Add vào ballLayer)
     /// - Parameter balls: small balls sẽ add
-    private func animateAddSmallBalls(_ balls: Set<Ball>) {
-        let duration = 0.2
-        for ball in balls {
-//            guard let sprite = ball.sprite else {
-//                return
-//            }
-            let sprite = ball.sprite
-            sprite.position = point(column: ball.column, row: ball.row)
-            sprite.zPosition = ballZposition
-            sprite.alpha = 0.0
-            sprite.xScale = 0.1
-            sprite.yScale = 0.1
-            ballsLayer.addChild(sprite)
-            let action = SKAction.sequence([SKAction.wait(forDuration: duration, withRange: 0.4),
-                                            SKAction.group([SKAction.fadeIn(withDuration: duration),
-                                                            SKAction.scale(to: 0.4, duration: duration)
-                                                           ])])
-            sprite.run(action)
+    private func animateAddSmallBalls(_ balls: Set<Ball>) async {
+        return await withTaskGroup(of: Void.self) { group in
+            let duration = 0.2
+            for ball in balls {
+                let sprite = ball.sprite
+                sprite.position = point(column: ball.column, row: ball.row)
+                sprite.zPosition = smallBallZPosition
+                sprite.alpha = 0.0
+                sprite.xScale = 0.1
+                sprite.yScale = 0.1
+                ballsLayer.addChild(sprite)
+                let action = SKAction.group([SKAction.fadeIn(withDuration: duration),
+                                             SKAction.scale(to: 0.5, duration: duration)])
+                group.addTask {
+                    await sprite.run(action)
+                }
+            }
         }
+
     }
 
 
@@ -243,8 +249,14 @@ class GameScene: SKScene, ObservableObject {
             }
         }
 
-        for ball in set {
-            ball.explodeAndRemove()
+        Task {
+            return await withTaskGroup(of: Void.self) { group in
+                for ball in set {
+                    group.addTask {
+                        await ball.explodeAndRemove()
+                    }
+                }
+            }
         }
 
         if soundOn {
@@ -266,7 +278,7 @@ class GameScene: SKScene, ObservableObject {
         scoreLabel.fontColor = UIColor.blue
         scoreLabel.text = "\(chain.score)"
         scoreLabel.position = centerPoint
-        scoreLabel.zPosition = scoreZposition
+        scoreLabel.zPosition = scoreZPosition
         ballsLayer.addChild(scoreLabel)
 
         let action = SKAction.move(by: CGVector(dx: 0, dy: 4), duration: 0.8)
@@ -290,10 +302,11 @@ class GameScene: SKScene, ObservableObject {
     private func animate(move: Move) async {
         hideSelectionIndicator(ball: move.ball)
         seletecBall = nil
+
         move.ball.sprite.addChild(tailFor(ball: move.ball))
+
         var count = 0
         let path = CGMutablePath()
-//        let points = move.cellList.array
         guard let points = move.cellList else {
             return
         }
@@ -321,28 +334,13 @@ class GameScene: SKScene, ObservableObject {
         if let smallBall = move.smallBall, let emptyCell = move.emptyCell {
             let sprite = smallBall.sprite
             let p = point(column: emptyCell.column, row: emptyCell.row)
-            let action = SKAction.sequence([SKAction.fadeOut(withDuration: duration),
+            let action = SKAction.sequence([SKAction.fadeOut(withDuration: 0),
                                             SKAction.move(to: p, duration: 0),
-                                            SKAction.fadeIn(withDuration: duration)])
+                                            SKAction.fadeIn(withDuration: 0.2)])
             await sprite.run(action)
         }
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private func handleMatches(balls: Set<Ball>) -> Bool {
 
@@ -356,9 +354,6 @@ class GameScene: SKScene, ObservableObject {
             if chain.count != 0 {
                 chains.inserts(chain)
             }
-//            if let chain = level.removeMatchesBall(ball) as? Set<LNChain>, chain.count != 0 {
-//                chains.inserts(chain)
-//            }
         }
         lastUndo.justExplodedChains = chains
 
@@ -373,30 +368,24 @@ class GameScene: SKScene, ObservableObject {
     }
 
     private func beginNextTurn() {
-//        guard let bigBalls: Set<LNBall> = level.addNextBigBalls() as? Set<LNBall>, let lastUndo = undoArr.last else {
-//            return
-//        }
 
         guard let lastUndo = undoArr.last else {
             return
         }
         let bigBalls = ballManager.addNextBigBalls()
 
-
         lastUndo.justAddedBigBalls = bigBalls
+
         Task {
             await animateShowBigBalls(bigBalls)
             if !handleMatches(balls: bigBalls) {
-//                if let smallBalls = level.addNextSmallBalls() as? Set<LNBall> {
                 let smallBalls = ballManager.addNextSmallBalls()
-
-                    if smallBalls.count == 0 {
-                        // show game over
-                    } else {
-                        lastUndo.justAdddedSmallBalls = smallBalls
-                        animateAddSmallBalls(smallBalls)
-                    }
-//                }
+                if smallBalls.count == 0 {
+                    // show game over
+                } else {
+                    lastUndo.justAdddedSmallBalls = smallBalls
+                    await animateAddSmallBalls(smallBalls)
+                }
             }
         }
 
@@ -404,49 +393,17 @@ class GameScene: SKScene, ObservableObject {
 
     private func tryMoveBall(_ ball: Ball, toCell: Cell) {
         let fromCell = Cell(column: ball.column, row: ball.row)
-//        let cellList = level.findPath(from: fromCell, to: toCell)
         let cellList = ballManager.findPathFrom(cell: fromCell, toCell: toCell)
         if cellList.len == 0 {
             animateInvalidMove(ball: ball)
         } else {
-//            let move = LNMove()
-//            move.ball = ball
-//            move.cellList = cellList
             let move = Move()
             move.ball = ball
             move.cellList = cellList
 
-//            if let smallBall = level.ball(at: toCell), !smallBall.isBig {
-//                level.temporaryRemoveSmallBall(smallBall)
-//                level.performMove(ball, to: toCell)
-//                let emptyCell = level.findEmptyCell()
-//                level.performMoveSmallBall(smallBall, to: emptyCell)
-//                move.smallBall = smallBall
-//                move.emptyCell = emptyCell
-//
-//            } else {
-//                level.performMove(ball, to: toCell)
-//            }
-
-//            if let smallBall = ballManager.ballAt(cell: toCell), !smallBall.isBig {
-//                ballManager.temporaryRemoveSmallBall(smallBall: smallBall)
-//                ballManager.performMove(ball: ball, toCell: toCell)
-//                let emptyCell = ballManager.findEmptyCell()
-//                ballManager.performMoveSmallBall(smallBall: smallBall, toCell: emptyCell)
-//                move.smallBall = smallBall
-//                move.emptyCell = emptyCell
-//            } else {
-//                ballManager.performMove(ball: ball, toCell: toCell)
-//            }
             ballManager.performMove(move: move)
 
             Task {
-//                await animate(move:move)
-//                if let movedBall = level.ball(at: toCell) {
-//                    if !handleMatches(balls: [movedBall]) {
-//                        beginNextTurn()
-//                    }
-//                }
                 await animate(move:move)
                 if let movedBall = ballManager.ballAt(cell: toCell) {
                     if !handleMatches(balls: [movedBall]) {
@@ -460,9 +417,6 @@ class GameScene: SKScene, ObservableObject {
 
         }
     }
-
-
-
 }
 
 extension GameScene {
@@ -477,8 +431,6 @@ extension GameScene {
             return
         }
         touchedCell = cell
-
-//        test()
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -517,7 +469,6 @@ extension GameScene {
             return
         }
 
-//        if let ball = level.ball(at: cell), ball.isBig {
         if let ball = ballManager.ballAt(cell: cell), ball.isBig {
             if seletecBall == ball {
                 hideSelectionIndicator(ball: ball)
@@ -538,75 +489,84 @@ extension GameScene {
         touchesEnded(touches, with: event)
     }
 
-    override func didEvaluateActions() {
-
-    }
-
 }
 
+// MARK: - Undo
 extension GameScene {
 
     func undo() {
-      
         if undoArr.isEmpty {
             return
         }
+
+        if isBusy {
+            return
+        }
+
+        isBusy = true
+
         let lastUndo = undoArr.removeLast()
         ballManager.resetComboMultiplier()
+        Task {
+            if lastUndo.justExplodedChains.count != 0 {
 
-//        level.resetComboMultiplier()
-        if lastUndo.justExplodedChains.count != 0 {
-            Task {
                 await animateUndoExplode(lastUndo.justExplodedChains)
 
-                animateRemoveSmallBalls(lastUndo.justAdddedSmallBalls)
-                animateRevertBigBalls(lastUndo.justAddedBigBalls)
-                animateUndoMove(lastUndo.justMoved)
+                await animateRemoveSmallBalls(lastUndo.justAdddedSmallBalls)
+                await animateRevertBigBalls(lastUndo.justAddedBigBalls)
+                await animateUndoMove(lastUndo.justMoved)
 
                 ballManager.undoDestroy(chains: lastUndo.justExplodedChains)
                 ballManager.revertBigBallsToSmall(bigBalls: lastUndo.justAddedBigBalls)
                 ballManager.removeSmallBalls(lastUndo.justAdddedSmallBalls)
                 ballManager.performUndoMove(move: lastUndo.justMoved)
 
+            } else {
+
+                await animateRemoveSmallBalls(lastUndo.justAdddedSmallBalls)
+                await animateRevertBigBalls(lastUndo.justAddedBigBalls)
+                await animateUndoMove(lastUndo.justMoved)
+
+                ballManager.revertBigBallsToSmall(bigBalls: lastUndo.justAddedBigBalls)
+                ballManager.removeSmallBalls(lastUndo.justAdddedSmallBalls)
+                ballManager.performUndoMove(move: lastUndo.justMoved)
             }
-        } else {
-
-            animateRemoveSmallBalls(lastUndo.justAdddedSmallBalls)
-            animateRevertBigBalls(lastUndo.justAddedBigBalls)
-            animateUndoMove(lastUndo.justMoved)
-
-            ballManager.revertBigBallsToSmall(bigBalls: lastUndo.justAddedBigBalls)
-            ballManager.removeSmallBalls(lastUndo.justAdddedSmallBalls)
-            ballManager.performUndoMove(move: lastUndo.justMoved)
-
+            isBusy = false
         }
 
     }
 
-    private func animateRevertBigBalls(_ balls: Set<Ball>) {
-        let duration = 0.2
-        for ball in balls {
-            ball.sprite.run(SKAction.scale(to: 0.4, duration: duration))
-        }
-    }
-
-    private func animateRemoveSmallBalls(_ balls: Set<Ball>) {
-        let duration = 0.2
-        for ball in balls {
-
-            let scaleAndFadeOut = SKAction.group([SKAction.scale(to: 0.1, duration: duration),
-                                              SKAction.fadeOut(withDuration: duration)])
-
-            let cell = Cell(column:ball.column, row: ball.row)
-            if let managedBall = ballManager.ballAt(cell: cell), managedBall.sprite.parent != nil {
-                ball.sprite = managedBall.sprite
+    private func animateRevertBigBalls(_ balls: Set<Ball>) async {
+        return await withTaskGroup(of: Void.self) { group in
+            let duration = 0.2
+            for ball in balls {
+                ball.sprite.zPosition = smallBallZPosition
+                group.addTask {
+                    await ball.sprite.run(SKAction.scale(to: 0.5, duration: duration))
+                }
             }
-
-            ball.sprite.run(SKAction.sequence([scaleAndFadeOut, SKAction.removeFromParent()]))
         }
     }
 
-    private func animateUndoMove(_ move: Move) {
+    private func animateRemoveSmallBalls(_ balls: Set<Ball>) async {
+        return await withTaskGroup(of: Void.self) { group in
+            let duration = 0.2
+            for ball in balls {
+                let scaleAndFadeOut = SKAction.group([SKAction.scale(to: 0.1, duration: duration),
+                                                      SKAction.fadeOut(withDuration: duration)])
+
+                let cell = Cell(column:ball.column, row: ball.row)
+                if let managedBall = ballManager.ballAt(cell: cell), managedBall.sprite.parent != nil {
+                    ball.sprite = managedBall.sprite
+                }
+                group.addTask {
+                    await ball.sprite.run(SKAction.sequence([scaleAndFadeOut, SKAction.removeFromParent()]))
+                }
+            }
+        }
+    }
+
+    private func animateUndoMove(_ move: Move) async {
         if let seletecBall = seletecBall {
             hideSelectionIndicator(ball: seletecBall)
             self.seletecBall = nil
@@ -622,8 +582,8 @@ extension GameScene {
             move.ball.sprite = managedBall.sprite
         }
 
-
         move.ball.sprite.addChild(tailFor(ball: move.ball))
+
         var p: CGPoint = point(column: points[count].column, row: points[count].row)
         path.move(to: p)
         count -= 1
@@ -638,19 +598,21 @@ extension GameScene {
         let moveAction = SKAction.follow(path, asOffset: false, orientToPath: false, duration: duration * Double(move.cellList.len))
         moveAction.timingMode = .easeInEaseOut
 
-        Task {
-            await move.ball.sprite.run(moveAction)
-            move.ball.sprite.removeAllChildren()
-            // chuyển small ball về vị trí ban đầu
-            if let smallBall = move.smallBall {
-                let sprite = smallBall.sprite
-                let endCell = move.cellList.cells[move.cellList.len - 1]
-                let p = point(column: endCell.column, row: endCell.row)
-                let action = SKAction.sequence([SKAction.fadeOut(withDuration: duration),
-                                                SKAction.move(to: p, duration: 0),
-                                                SKAction.fadeIn(withDuration: duration)])
-                await sprite.run(action)
-            }
+        await move.ball.sprite.run(moveAction)
+        move.ball.sprite.removeAllChildren()
+
+        // chuyển small ball về vị trí ban đầu
+        if let smallBall = move.smallBall {
+            let sprite = smallBall.sprite
+            let endCell = move.cellList.cells[move.cellList.len - 1]
+            let p = point(column: endCell.column, row: endCell.row)
+            let action = SKAction.sequence([SKAction.fadeOut(withDuration: 0),
+                                            SKAction.move(to: p, duration: 0),
+                                            SKAction.scale(to: 0.1, duration: 0),
+                                            SKAction.group([SKAction.fadeIn(withDuration: 0.2),
+                                                            SKAction.scale(to: 0.5, duration: 0.2)])
+                                            ])
+            await sprite.run(action)
         }
     }
 
@@ -666,10 +628,10 @@ extension GameScene {
             for ball in set {
                 ball.prepareUndoExplode()
                 ball.sprite.position = point(column: ball.column, row: ball.row)
-                ball.sprite.zPosition = ballZposition
+                ball.sprite.zPosition = bigBallZPosition
                 ballsLayer.addChild(ball.sprite)
                 group.addTask {
-                    await  ball.undoExplode()
+                    await ball.undoExplode()
                 }
             }
         }
@@ -687,7 +649,6 @@ extension GameScene {
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(wrappedValue)
-//            UserDefaults.standard.set(data, forKey: "undos")
             saveDataToDocuments(data, fileName: "undos")
             print(String(data: data, encoding: .utf8)!)
         } catch {

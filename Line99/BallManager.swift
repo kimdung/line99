@@ -82,13 +82,16 @@ class BallManager {
         var stop: Bool
         count = countEmptyCell()
 
+        if count == 0 {
+            return set
+        }
+
         var ballType: Int
 
         var tmpSet = Set<Int>()
 
         for _ in 0..<Config.NextBallNum {
             remain = Int(arc4random_uniform(UInt32(count)) + 1)
-            count -= 1
             stop = false
             for i in 0..<Config.NumColumns {
                 for j in 0..<Config.NumRows {
@@ -110,6 +113,10 @@ class BallManager {
                 if stop {
                     break
                 }
+            }
+            count -= 1
+            if count <= 0 {
+                break
             }
         }
         return set
@@ -510,6 +517,3 @@ struct CellList: Codable {
     var len: Int = 0
     var cells: [Cell] = [Cell](repeating: Cell(), count: Config.NumColumns * Config.NumRows)
 }
-
-
-
