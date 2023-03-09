@@ -36,10 +36,6 @@ class Ball: Codable {
         self.sprite = SKSpriteNode(texture: texture)
     }
 
-    func copy() -> Ball {
-        Ball(type: ballType, column: column, row: row)
-    }
-
     private enum CodingKeys : String, CodingKey {
         case column
         case row
@@ -86,6 +82,10 @@ extension Ball {
 
     var isBig: Bool {
         return ballType > 0
+    }
+
+    var cell: Cell {
+        return Cell(column: column, row: row)
     }
 
     func animateJumping() {
@@ -139,26 +139,5 @@ extension Ball {
         let undoExplodeAction = SKAction.animate(with: textureArr, timePerFrame: 0.05)
         await sprite.run(undoExplodeAction)
     }
-//    var spriteNode: SKSpriteNode {
-//        get {
-//            let texture = SKTexture.init(imageNamed: spriteName())
-//            let node = SKSpriteNode(texture: texture)
-//            return node
-//        }
-//    }
-//    - (void)animateShake {
-//
-//    }
-//
-//    - (void)animateJumping {
-//        SKAction *moveUpAction = [SKAction moveByX:0 y:3 duration:0.18];
-//        moveUpAction.timingMode = SKActionTimingEaseOut;
-//        SKAction *moveDownAction = [moveUpAction reversedAction];
-//        SKAction *upDownAction = [SKAction repeatActionForever:[SKAction sequence:@[moveUpAction, moveDownAction]]];
-//        [self.sprite runAction:upDownAction withKey:@"jumping"];
-//    }
-//
-//    - (void)stopJumping {
-//
-//    }
+
 }

@@ -7,27 +7,18 @@
 
 import Foundation
 
-class Move: Codable {
-    var ball: Ball!
+struct Move: Codable {
+    /// Danh sách cell chứa đường đi
     var cells: [Cell] = []
-    var smallBall: Ball?
-    var emptyCell: Cell?
 
-    init() {}
+    /// Nếu điểm đến có small ball thì đưa small ball đến small cell
+    var smallBallCell: Cell?
 
-    init(ball: Ball!, cells: [Cell], smallBall: Ball?, emptyCell: Cell?) {
-        self.ball = ball
-        self.cells = cells
-        self.smallBall = smallBall
-        self.emptyCell = emptyCell
-    }
-    
 }
 
 class UndoMove: Codable {
-    var justAddedBigBalls: Set<Ball> = Set()
-    var justAdddedSmallBalls: Set<Ball> = Set()
+    var justAddedBigBalls: Set<Cell> = Set()
+    var justAdddedSmallBalls: Set<Cell> = Set()
     var justExplodedChains: Set<Chain> = Set()
     var justMoved: Move = Move()
-    var justAddedScore: UInt = 0
 }

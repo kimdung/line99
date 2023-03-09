@@ -49,7 +49,8 @@ class Chain:  Codable {
         guard let ball = ball else {
             return
         }
-        balls.append(ball)
+        let newBall = Ball(type: ball.ballType, column: ball.column, row: ball.row)
+        balls.append(newBall)
     }
 
 }
