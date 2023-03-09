@@ -9,9 +9,19 @@ import Foundation
 
 class Move: Codable {
     var ball: Ball!
-    var cellList: CellList!
+    var cells: [Cell] = []
     var smallBall: Ball?
     var emptyCell: Cell?
+
+    init() {}
+
+    init(ball: Ball!, cells: [Cell], smallBall: Ball?, emptyCell: Cell?) {
+        self.ball = ball
+        self.cells = cells
+        self.smallBall = smallBall
+        self.emptyCell = emptyCell
+    }
+    
 }
 
 class UndoMove: Codable {

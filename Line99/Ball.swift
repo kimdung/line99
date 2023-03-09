@@ -36,6 +36,10 @@ class Ball: Codable {
         self.sprite = SKSpriteNode(texture: texture)
     }
 
+    func copy() -> Ball {
+        Ball(type: ballType, column: column, row: row)
+    }
+
     private enum CodingKeys : String, CodingKey {
         case column
         case row

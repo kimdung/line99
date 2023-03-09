@@ -10,12 +10,13 @@ import Foundation
 
 class BallManager {
 
-    var balls: [[Ball?]] = [[Ball?]](repeating: [Ball?](repeating: nil, count: Config.NumRows), count: Config.NumColumns)
+    private var balls: [[Ball?]] = [[Ball?]](repeating: [Ball?](repeating: nil, count: Config.NumRows), count: Config.NumColumns)
 
     private var comboMultiplier = 1
+    private var undoArr = [UndoMove]()
 
     func shuffle() -> Set<Ball> {
-        if let loadedArr = load() {
+        if let loadedArr = loadBalls() {
             balls = loadedArr
             var set = Set<Ball>()
             for arr in balls {
@@ -119,6 +120,18 @@ class BallManager {
                 break
             }
         }
+
+        if let lastUndo = undoArr.last {
+//            lastUndo.justAdddedSmallBalls = Set(set)
+            lastUndo.justAdddedSmallBalls.removeAll()
+            for ball in set {
+                lastUndo.justAdddedSmallBalls.insert(ball)
+                print("Add small ball \(ball.column),\(ball.row)")
+            }
+        }
+
+
+
         return set
     }
 
@@ -129,9 +142,21 @@ class BallManager {
                 if let ball = balls[i][j], ball.ballType < 0 {
                     ball.ballType = -ball.ballType
                     set.insert(ball)
+
                 }
             }
         }
+
+        if let lastUndo = undoArr.last {
+
+//            lastUndo.justAddedBigBalls = Set(set)
+            lastUndo.justAdddedSmallBalls.removeAll()
+            for ball in set {
+                lastUndo.justAddedBigBalls.insert(ball.copy())
+                print("Add big ball \(ball.column),\(ball.row)")
+            }
+        }
+
         return set
     }
 
@@ -160,35 +185,48 @@ class BallManager {
     }
 
     func performMove(move: Move) {
-        let len = move.cellList.len
-        let endPoint = move.cellList.cells[len - 1]
+        let len = move.cells.count
+        let endPoint = move.cells[len - 1]
 
         if let smallBall = ballAt(cell: endPoint), !smallBall.isBig {
+
+            if let lastUndo = undoArr.last {
+                let justAddSmalls = lastUndo.justAdddedSmallBalls
+                for smallBall in justAddSmalls {
+                    if smallBall.column == endPoint.column && smallBall.row == endPoint.row {
+                        print("aaaaa")
+                    }
+                }
+            }
+
+
             temporaryRemoveSmallBall(smallBall: smallBall)
             performMove(ball: move.ball, toCell: endPoint)
             let emptyCell = findEmptyCell()
             performMoveSmallBall(smallBall: smallBall, toCell: emptyCell)
             move.smallBall = smallBall
             move.emptyCell = emptyCell
+
+
+
+
         } else {
             performMove(ball: move.ball, toCell: endPoint)
         }
 
-        //
-        //
-        //        let len = move.cellList.len
-        //        let endPoint = move.cellList.array[len - 1]
-        //
-        //        guard let movingBall = move.ball else {
-        //            return
-        //        }
-        //        let column = movingBall.column
-        //        let row = movingBall.row
-        //        balls[column][row] = nil
-        //
-        //        movingBall.column = endPoint.column
-        //        movingBall.row = endPoint.row
-        //        balls[endPoint.column][endPoint.row] = movingBall
+        print("-----")
+
+        let undoMove = UndoMove()
+        let justMove = Move(ball: move.ball.copy(), cells: move.cells, smallBall: move.smallBall?.copy(), emptyCell: move.emptyCell)
+        undoMove.justMoved = justMove
+        undoArr.append(undoMove)
+
+
+        print("Moved big Ball \(move.cells.first!.column),\(move.cells.first!.row) to \(move.cells.last!.column),\(move.cells.last!.row)")
+        if let smallBall = move.smallBall {
+            print("Moved small Ball \(move.cells.last!.column),\(move.cells.last!.row) to \(move.emptyCell!.column),\(move.emptyCell!.row)")
+        }
+
     }
 
     private func performMove(ball: Ball, toCell: Cell) {
@@ -196,6 +234,16 @@ class BallManager {
         balls[toCell.column][toCell.row] = ball
         ball.column = toCell.column
         ball.row = toCell.row
+    }
+
+    private func performMoveSmallBall(smallBall: Ball, toCell emptyCell: Cell) {
+        if (emptyCell.column == NSNotFound || emptyCell.row == NSNotFound) {
+            balls[smallBall.column][smallBall.row] = nil;
+        } else {
+            smallBall.column = emptyCell.column;
+            smallBall.row = emptyCell.row;
+            balls[emptyCell.column][emptyCell.row] = smallBall;
+        }
     }
 
     private func isInside(column: Int, row: Int) -> Bool {
@@ -270,6 +318,11 @@ class BallManager {
         } else {
             resetComboMultiplier()
         }
+
+        if let lastUndo = undoArr.last {
+            lastUndo.justExplodedChains.inserts(set)
+        }
+
         return set
     }
 
@@ -281,53 +334,6 @@ class BallManager {
         }
     }
 
-    func revertBigBallsToSmall(bigBalls: Set<Ball>) {
-        for ball in bigBalls {
-            let ballType = ball.ballType
-            if ballType > 0 {
-                balls[ball.column][ball.row]?.ballType = -ballType
-            }
-        }
-    }
-
-    func undoDestroy(chains: Set<Chain>) {
-        for chain in chains {
-            for ball in chain.balls {
-                balls[ball.column][ball.row] = ball
-            }
-        }
-    }
-
-    func removeSmallBalls(_ balls: Set<Ball>){
-        for ball in balls {
-            self.balls[ball.column][ball.row] = nil
-        }
-    }
-
-    func performUndoMove(move: Move) {
-        guard let pointList = move.cellList, let ball = move.ball else {
-            return
-        }
-
-
-
-
-        let startPoint = pointList.cells[0]
-        let endPoint = pointList.cells[pointList.len - 1]
-
-        ball.column = startPoint.column
-        ball.row = startPoint.row
-        if let smallBall = move.smallBall, let emptyCell = move.emptyCell {
-            smallBall.column = endPoint.column
-            smallBall.row = endPoint.row
-            balls[endPoint.column][endPoint.row] = smallBall
-            balls[emptyCell.column][emptyCell.row] = nil
-        } else {
-            balls[endPoint.column][endPoint.row] = nil
-        }
-        balls[startPoint.column][startPoint.row] = ball
-    }
-
     func calculateScore(chains:Set<Chain>) {
         for chain in chains {
             chain.score = (5 * chain.balls.count * comboMultiplier) +  bonusPoint(ballCount: chain.balls.count) * comboMultiplier
@@ -336,7 +342,7 @@ class BallManager {
         }
     }
 
-    func bonusPoint(ballCount: Int) -> Int {
+    private func bonusPoint(ballCount: Int) -> Int {
         if ballCount <= Config.EatBallLineNum {
             return 0
         } else {
@@ -349,7 +355,7 @@ class BallManager {
         comboMultiplier = 1
     }
 
-    func findPathFrom(cell fromCell: Cell, toCell: Cell) -> CellList {
+    func findPathFrom(cell fromCell: Cell, toCell: Cell) -> [Cell] {
         var i1 = fromCell.column
         var j1 = fromCell.row
         let i2 = toCell.column
@@ -368,8 +374,7 @@ class BallManager {
 
         var x, y, xx, yy, i, k: Int
 
-        var res = CellList()
-        res.len = 0
+        var cells = [Cell]()
 
         for x in 0..<Config.NumColumns {
             for y in 0..<Config.NumRows {
@@ -395,8 +400,9 @@ class BallManager {
 
                     i = 0;
                     while (true) {
-                        res.cells[i].column = i1;
-                        res.cells[i].row = j1;
+//                        res.cells[i].column = i1;
+//                        res.cells[i].row = j1;
+                        cells.append(Cell(column: i1, row: j1))
                         i += 1;
                         k = i1;
                         i1 = dadi[i1][j1];
@@ -405,8 +411,8 @@ class BallManager {
                         }
                         j1 = dadj[k][j1];
                     }
-                    res.len = i;
-                    return res;
+
+                    return cells;
                 }
 
                 if !(xx >= 0 && xx < Config.NumColumns && yy >= 0 && yy < Config.NumRows) {
@@ -422,10 +428,10 @@ class BallManager {
                 }
             }
         }
-        return  res
+        return cells
     }
 
-    func findEmptyCell() -> Cell {
+    private func findEmptyCell() -> Cell {
         var emptyCell = Cell()
         emptyCell.column = NSNotFound
         emptyCell.row = NSNotFound
@@ -456,46 +462,147 @@ class BallManager {
         return emptyCell
     }
 
-    func temporaryRemoveSmallBall(smallBall: Ball) {
+    private func temporaryRemoveSmallBall(smallBall: Ball) {
         balls[smallBall.column][smallBall.row] = nil
     }
 
 
-    func performMoveSmallBall(smallBall: Ball, toCell emptyCell: Cell) {
-        if (emptyCell.column == NSNotFound || emptyCell.row == NSNotFound) {
-            balls[smallBall.column][smallBall.row] = nil;
+
+
+}
+
+//MARK: - Undo
+extension BallManager {
+
+    var lastUndo: UndoMove? {
+        return undoArr.last
+    }
+
+    func undo() {
+        guard let lastUndo = undoArr.last else {
+            return
+        }
+        undoArr.removeLast()
+        print("======")
+
+        undoDestroy(chains: lastUndo.justExplodedChains)
+        removeSmallBalls(lastUndo.justAdddedSmallBalls)
+        revertBigBallsToSmall(bigBalls: lastUndo.justAddedBigBalls)
+        performUndoMove(move: lastUndo.justMoved)
+    }
+
+
+    private func removeSmallBalls(_ balls: Set<Ball>){
+        for ball in balls {
+            self.balls[ball.column][ball.row] = nil
+            print("remove small ball \(ball.column),\(ball.row)")
+        }
+    }
+
+    private func performUndoMove(move: Move) {
+        guard let ball = move.ball, !move.cells.isEmpty else {
+            return
+        }
+
+        let startPoint = move.cells[0]
+        let len = move.cells.count
+        let endPoint = move.cells[len - 1]
+
+        ball.column = startPoint.column
+        ball.row = startPoint.row
+        if let smallBall = move.smallBall, let emptyCell = move.emptyCell {
+            smallBall.column = endPoint.column
+            smallBall.row = endPoint.row
+            balls[endPoint.column][endPoint.row] = smallBall
+            balls[emptyCell.column][emptyCell.row] = nil
+
+            print("UnMove small ball \(emptyCell.column),\(emptyCell.row) to \(endPoint.column),\(endPoint.row)")
+
         } else {
-            smallBall.column = emptyCell.column;
-            smallBall.row = emptyCell.row;
-            balls[emptyCell.column][emptyCell.row] = smallBall;
+            balls[endPoint.column][endPoint.row] = nil
+        }
+        balls[startPoint.column][startPoint.row] = ball
+
+        print("UnMove Ball \(endPoint.column),\(endPoint.row) to \(startPoint.column),\(startPoint.row)")
+    }
+
+    private func undoDestroy(chains: Set<Chain>) {
+        for chain in chains {
+            for ball in chain.balls {
+                balls[ball.column][ball.row] = ball
+            }
+        }
+    }
+
+    private func revertBigBallsToSmall(bigBalls: Set<Ball>) {
+        for ball in bigBalls {
+            let ballType = ball.ballType
+            if ballType > 0 {
+                balls[ball.column][ball.row]?.ballType = -ballType
+
+                print("revert to small \(ball.column),\(ball.row)")
+            }
         }
     }
 
 }
+
 extension BallManager {
-    struct WrappedValue: Codable {
-        var values: [[Ball?]]
+
+    struct WrappedValue2: Codable {
+        var values: [UndoMove]
     }
 
-    func save() {
-        let wrappedValue = WrappedValue(values: balls)
+    func saveUndoData() {
+
+        let wrappedValue = WrappedValue2(values: undoArr)
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(wrappedValue)
-            UserDefaults.standard.set(data, forKey: "balls")
+            saveDataToDocuments(data, fileName: "undos.json")
             print(String(data: data, encoding: .utf8)!)
         } catch {
             print("error \(error)")
         }
     }
 
-    func load() -> [[Ball?]]? {
-        if let data = UserDefaults.standard.data(forKey: "balls") {
+    private func loadUndoMove() -> [UndoMove]? {
+        if let data = readDataFromFile(fileName: "undos.json") {
+            do {
+                let values = try JSONDecoder()
+                    .decode(WrappedValue2.self, from: data)
+                return values.values
+
+            } catch {
+                print("Retrieve Failed \(error)")
+                return nil
+            }
+        }
+        return nil
+    }
+
+
+    struct WrappedValue: Codable {
+        var values: [[Ball?]]
+    }
+
+    func saveBalls() {
+        let wrappedValue = WrappedValue(values: balls)
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(wrappedValue)
+            saveDataToDocuments(data, fileName: "balls.json")
+            print(String(data: data, encoding: .utf8)!)
+        } catch {
+            print("error \(error)")
+        }
+    }
+
+    func loadBalls() -> [[Ball?]]? {
+        if let data = readDataFromFile(fileName: "balls.json") {
             do {
                 let values = try JSONDecoder()
                     .decode(WrappedValue.self, from: data)
-
-
                 return values.values
 
             } catch {
@@ -511,9 +618,4 @@ extension BallManager {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         return paths[0]
     }
-}
-
-struct CellList: Codable {
-    var len: Int = 0
-    var cells: [Cell] = [Cell](repeating: Cell(), count: Config.NumColumns * Config.NumRows)
 }

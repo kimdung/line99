@@ -17,7 +17,7 @@ func saveDataToDocuments(_ data: Data, fileName: String) {
 
     let fullFileName = getDocumentsDirectory().appendingPathComponent(fileName)
     do {
-        try data.write(to: fullFileName)
+        try data.write(to: fullFileName, options: .atomic)
     } catch {
         print("Error = \(error)")
     }
