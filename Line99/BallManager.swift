@@ -10,7 +10,8 @@ import Foundation
 
 class BallManager {
 
-    private var balls: [[Ball?]] = [[Ball?]](repeating: [Ball?](repeating: nil, count: Config.NumRows), count: Config.NumColumns)
+    private var balls = [[Ball?]](repeating: [Ball?](repeating: nil, count: Config.NumRows),
+                                  count: Config.NumColumns)
 
     private var comboMultiplier = 1
     private var undoArr = [UndoMove]()
@@ -330,7 +331,7 @@ class BallManager {
         comboMultiplier = 1
     }
 
-    func findPathFrom(cell fromCell: Cell, toCell: Cell) -> Move {
+    func findMove(cell fromCell: Cell, toCell: Cell) -> Move {
         let cells = findCellsPathFrom(cell: fromCell, toCell: toCell)
 
         if let _ = ballAt(cell: toCell) {
@@ -448,13 +449,6 @@ class BallManager {
         }
     }
 
-//    private func temporaryRemoveSmallBall(smallBall: Ball) {
-//        balls[smallBall.column][smallBall.row] = nil
-//    }
-
-
-
-
 }
 
 //MARK: - Undo
@@ -471,7 +465,6 @@ extension BallManager {
         undoArr.removeLast()
         print("======")
 
-//        undoDestroy(chains: lastUndo.justExplodedChains)
         removeSmallBalls(lastUndo.justAdddedSmallBalls)
         revertBigBallsToSmall(lastUndo.justAddedBigBalls)
         performUndoMove(lastUndo.justMoved)
@@ -515,9 +508,11 @@ extension BallManager {
         var set = Set<Ball>()
         for chain in chains {
             for ball in chain.balls {
-                balls[ball.column][ball.row] = ball
                 set.insert(ball)
             }
+        }
+        for ball in set {
+            balls[ball.column][ball.row] = ball
         }
         return set
     }
@@ -535,19 +530,20 @@ extension BallManager {
 
 }
 
+// MARK: - Save and Load
 extension BallManager {
 
-    struct WrappedValue2: Codable {
+    private struct UndoMoveWrapped: Codable {
         var values: [UndoMove]
     }
 
-    func saveUndoData() {
+    private func saveUndoData() {
 
-        let wrappedValue = WrappedValue2(values: undoArr)
+        let wrappedValue = UndoMoveWrapped(values: undoArr)
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(wrappedValue)
-            saveDataToDocuments(data, fileName: "undos.json")
+            FileManager.saveDataToDocuments(data, fileName: "undos.json")
             print(String(data: data, encoding: .utf8)!)
         } catch {
             print("error \(error)")
@@ -555,10 +551,10 @@ extension BallManager {
     }
 
     private func loadUndoMove() -> [UndoMove]? {
-        if let data = readDataFromFile(fileName: "undos.json") {
+        if let data = FileManager.readDataFromFile(fileName: "undos.json") {
             do {
                 let values = try JSONDecoder()
-                    .decode(WrappedValue2.self, from: data)
+                    .decode(UndoMoveWrapped.self, from: data)
                 return values.values
 
             } catch {
@@ -569,28 +565,27 @@ extension BallManager {
         return nil
     }
 
-
-    struct WrappedValue: Codable {
+    private struct BallsWrapped: Codable {
         var values: [[Ball?]]
     }
 
-    func saveBalls() {
-        let wrappedValue = WrappedValue(values: balls)
+    private func saveBalls() {
+        let wrappedValue = BallsWrapped(values: balls)
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(wrappedValue)
-            saveDataToDocuments(data, fileName: "balls.json")
+            FileManager.saveDataToDocuments(data, fileName: "balls.json")
             print(String(data: data, encoding: .utf8)!)
         } catch {
             print("error \(error)")
         }
     }
 
-    func loadBalls() -> [[Ball?]]? {
-        if let data = readDataFromFile(fileName: "balls.json") {
+    private func loadBalls() -> [[Ball?]]? {
+        if let data = FileManager.readDataFromFile(fileName: "balls.json") {
             do {
                 let values = try JSONDecoder()
-                    .decode(WrappedValue.self, from: data)
+                    .decode(BallsWrapped.self, from: data)
                 return values.values
 
             } catch {
@@ -601,9 +596,4 @@ extension BallManager {
         return nil
     }
 
-   
-    func getDocumentsDirectory() -> URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0]
-    }
 }

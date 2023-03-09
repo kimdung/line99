@@ -13,10 +13,8 @@ struct Config {
     static let NumRows = 9
     static let InitBallNum = 5
     static let NextBallNum = 3
-    static let EatBallLineNum = 5
-}
+    static let EatBallLineNum = 3
 
-struct Cell: Codable {
-    var column: Int = NSNotFound
-    var row: Int = NSNotFound
+    static let CellWidth = 40.0
+    static let CellHeight = 40.0
 }

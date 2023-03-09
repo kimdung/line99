@@ -16,7 +16,6 @@ class Ball: Codable {
     var sprite: SKSpriteNode
     var spriteName: String
 
-
     private let spriteNames = [ "jump_1_1.png",
                                 "jump_2_1.png",
                                 "jump_3_1.png",

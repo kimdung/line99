@@ -103,7 +103,8 @@ class GameScene: SKScene, ObservableObject {
                     imageName = "Tile_5";
                 }
                 let tileNode = SKSpriteNode(imageNamed: imageName)
-                tileNode.position = point(column: col, row: row)
+                let cell = Cell(column: col, row: row)
+                tileNode.position = cell.toPoint
                 tileNode.zPosition = 3
                 gridLayer.addChild(tileNode)
             }
@@ -122,7 +123,7 @@ class GameScene: SKScene, ObservableObject {
     /// Ẩn ball được chọn bằng cách tắt animation và đưa ball về trung tâm của cell
     private func hideSelectionIndicator(ball: Ball) {
         ball.stopJumping()
-        let centerPoint = point(column: ball.column, row: ball.row)
+        let centerPoint = ball.cell.toPoint
         let moveToCenterAction = SKAction.move(to: centerPoint, duration: 0.1)
         moveToCenterAction.timingMode = .easeInEaseOut
         ball.sprite.run(moveToCenterAction)
@@ -132,11 +133,8 @@ class GameScene: SKScene, ObservableObject {
     /// Tạo spriteNode cho balls, add spriteNode vào ballLayer
     private func addSprites(forBalls balls: Set<Ball>) {
         for ball in balls {
-//            guard let sprite = ball.sprite  else {
-//                return
-//            }
             let sprite = ball.sprite
-            sprite.position = point(column: ball.column, row: ball.row)
+            sprite.position = ball.cell.toPoint
             ballsLayer.addChild(sprite)
             ball.sprite.alpha = 0
 
@@ -185,7 +183,7 @@ class GameScene: SKScene, ObservableObject {
             let duration = 0.2
             for ball in balls {
                 let sprite = ball.sprite
-                sprite.position = point(column: ball.column, row: ball.row)
+                sprite.position = ball.cell.toPoint
                 sprite.zPosition = smallBallZPosition
                 sprite.alpha = 0.0
                 sprite.xScale = 0.1
@@ -303,12 +301,12 @@ class GameScene: SKScene, ObservableObject {
 
         let cells = move.cells
 
-        var p: CGPoint = point(column: cells[count].column, row: cells[count].row)
+        var p: CGPoint = cells[count].toPoint  //   point(column: cells[count].column, row: cells[count].row)
         path.move(to: p)
         count += 1
 
         repeat {
-            p = point(column:  cells[count].column, row:  cells[count].row)
+            p =  cells[count].toPoint// point(column:  cells[count].column, row:  cells[count].row)
             path.addLine(to: p)
             count += 1
         } while (count < cells.count)
@@ -324,7 +322,7 @@ class GameScene: SKScene, ObservableObject {
 
         if let smallBallCell = move.smallBallCell, let smallBall = ballManager.ballAt(cell: endCell) {
             let sprite = smallBall.sprite
-            let p = point(column: smallBallCell.column, row: smallBallCell.row)
+            let p = smallBallCell.toPoint//  point(column: smallBallCell.column, row: smallBallCell.row)
             let action = SKAction.sequence([SKAction.fadeOut(withDuration: 0),
                                             SKAction.move(to: p, duration: 0),
                                             SKAction.fadeIn(withDuration: 0.2)])
@@ -363,7 +361,7 @@ class GameScene: SKScene, ObservableObject {
 
     private func tryMoveBall(_ ball: Ball, toCell: Cell) {
         let fromCell = ball.cell// Cell(column: ball.column, row: ball.row)
-        let move = ballManager.findPathFrom(cell: fromCell, toCell: toCell)
+        let move = ballManager.findMove(cell: fromCell, toCell: toCell)
         let cells = move.cells
         if cells.isEmpty {
             animateInvalidMove(ball: ball)
@@ -400,7 +398,7 @@ extension GameScene {
             return
         }
         let location = touch.location(in: ballsLayer)
-        guard let cell = cell(fromPoint: location) else {
+        guard let cell = location.toCell else {
             touchedCell = nil
             return
         }
@@ -413,7 +411,7 @@ extension GameScene {
             return
         }
         let location = touch.location(in: ballsLayer)
-        guard let newCell = cell(fromPoint: location) else {
+        guard let newCell = location.toCell else {
             touchedCell = nil
             return
         }
@@ -438,7 +436,7 @@ extension GameScene {
         }
         let location: CGPoint = touch.location(in: ballsLayer)
 
-        guard let cell = cell(fromPoint: location) else {
+        guard let cell = location.toCell else {
             touchedCell = nil
             return
         }
@@ -548,7 +546,7 @@ extension GameScene {
             touchedCell = nil
         }
 
-        guard let endCell = move.cells.last, let ball = ballManager.ballAt(cell: endCell) else {
+        guard let endCell = move.cells.last, let ball = ballManager.ballAt(cell: endCell), ball.sprite.parent != nil else {
             print("animate undo move error")
             return
         }
@@ -559,12 +557,12 @@ extension GameScene {
 
         ball.sprite.addChild(tailFor(ball: ball))
 
-        var p: CGPoint = point(column: points[count].column, row: points[count].row)
+        var p: CGPoint = points[count].toPoint// point(column: points[count].column, row: points[count].row)
         path.move(to: p)
         count -= 1
 
         repeat {
-            p = point(column: points[count].column, row: points[count].row)
+            p = points[count].toPoint //point(column: points[count].column, row: points[count].row)
             path.addLine(to: p)
             count -= 1
         } while (count >= 0)
@@ -579,7 +577,7 @@ extension GameScene {
         if let smallBallCell = move.smallBallCell {
             if let smallBall = ballManager.ballAt(cell: smallBallCell) {
                 let sprite = smallBall.sprite
-                let p = point(column: endCell.column, row: endCell.row)
+                let p = endCell.toPoint// point(column: endCell.column, row: endCell.row)
                 let action = SKAction.sequence([SKAction.fadeOut(withDuration: 0),
                                                 SKAction.move(to: p, duration: 0),
                                                 SKAction.scale(to: 0.1, duration: 0),
@@ -600,7 +598,7 @@ extension GameScene {
         return await withTaskGroup(of: Void.self) { group in
             for ball in balls {
                 ball.prepareUndoExplode()
-                ball.sprite.position = point(column: ball.column, row: ball.row)
+                ball.sprite.position = ball.cell.toPoint// point(column: ball.column, row: ball.row)
                 ball.sprite.zPosition = bigBallZPosition
                 ballsLayer.addChild(ball.sprite)
                 group.addTask {
@@ -612,6 +610,7 @@ extension GameScene {
 }
 
 
+/*
 extension GameScene {
     /// Tính point tâm của hàng cột tương ứng ( gốc 0,0 là left,bottom)
     /// - Parameters:
@@ -637,3 +636,4 @@ extension GameScene {
 }
 
 
+*/
