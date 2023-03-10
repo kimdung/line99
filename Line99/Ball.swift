@@ -99,6 +99,43 @@ extension Ball {
 
     func stopJumping() {
         sprite.removeAction(forKey: "jumping")
+        let centerPoint = cell.toPoint
+        let moveToCenterAction = SKAction.move(to: centerPoint, duration: 0.1)
+        moveToCenterAction.timingMode = .easeInEaseOut
+        sprite.run(moveToCenterAction)
+    }
+
+    /// Di chuyển ball theo danh sách cells. Giả định ball nằm ở cell đầu tiên trong danh sách
+    func animateMove(cells: [Cell]) async {
+        guard cells.count >= 2, // dịch chuyển tối thiểu 2 cell
+              let fromCell = cells.first,
+              cell == fromCell else {
+            return
+        }
+        let path = CGMutablePath()
+        path.move(to: fromCell.toPoint)
+
+        for i in 1..<cells.count {
+            path.addLine(to: cells[i].toPoint)
+        }
+
+        let duration = max(0.1, 0.04 * Double(cells.count)) // Tối thiểu 0.1 sec cho animation
+        let moveAction = SKAction.follow(path, asOffset: false, orientToPath: false, duration: duration)
+        moveAction.timingMode = .easeInEaseOut
+
+        await sprite.addChild(tail)
+        await sprite.run(moveAction)
+        await sprite.removeAllChildren()
+    }
+
+    private var tail: SKEmitterNode {
+        let smoke = SKEmitterNode(fileNamed: "Smoke.sks")!
+        smoke.targetNode = sprite.parent
+        smoke.particleColorSequence = nil
+        smoke.particleColorBlendFactor = 1
+        smoke.particleBlendMode = .alpha
+        smoke.particleColor = UIColor(named: "ball-color-\(ballType)") ?? .red
+        return smoke
     }
 
     func animateShaking() {

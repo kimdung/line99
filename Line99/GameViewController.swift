@@ -12,38 +12,20 @@ import GameplayKit
 class GameViewController: UIViewController {
 
     @IBOutlet weak var gridView: UIView!
-    private var scene: GameScene!
+    private let scene: GameScene = GameScene()
 //    private var level: LNLevel = LNLevel()
     override func viewDidLoad() {
         super.viewDidLoad()
 
 
         if let view = self.gridView as! SKView? {
-            // Load the SKScene from 'GameScene.sks'
-//            if let scene = SKScene(fileNamed: "GameScene") {
-//                // Set the scale mode to scale to fit the window
-//                scene.scaleMode = .aspectFill
-//
-//                // Present the scene
-//                view.presentScene(scene)
-//            }
-//
-//            view.ignoresSiblingOrder = true
-//
-//            view.showsFPS = true
-//            view.showsNodeCount = true
+            view.showsFPS = true
+            view.showsNodeCount = true
 
+//            scene = GameScene()
 
-//            scene = LNGameScene.init(size: view.bounds.size)
-//            scene.scaleMode = .aspectFill
-////            view.presentScene(scene)
-//            scene.addTiles()
-//            scene.level = level
-
-            scene = GameScene(size: CGSize(width: 360, height: 360))
-//            scene.level = level
-
-            scene.scaleMode = .aspectFill
+//            scene.backgroundColor = .red
+            scene.scaleMode = .aspectFit
             view.presentScene(scene)
 
           
@@ -126,13 +108,4 @@ class GameViewController: UIViewController {
 
 }
 
-extension Set {
 
-
-
-    mutating func inserts(_ elements: Set<Element>) {
-        for element in elements {
-            insert(element)
-        }
-    }
-}

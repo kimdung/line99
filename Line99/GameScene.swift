@@ -22,7 +22,6 @@ class GameScene: SKScene, ObservableObject {
     var soundOn: Bool = false
 
     private let ballsLayer: SKNode = SKNode()
-    private var invisibleNode: SKNode = SKNode() // node chứa hiệu ứng di chuyển của ball
 
     private var isBusy = false
 
@@ -35,30 +34,21 @@ class GameScene: SKScene, ObservableObject {
 
     private var touchedCell: Cell? = nil
 
-    private let cellWidth = 40.0
-    private let cellHeight = 40.0
-
-    override init(size: CGSize) {
+    override init() {
+        let size = CGSize(width: max(360, Double(Config.NumColumns) * Cell.width), height: max(360, Double(Config.NumRows) * Cell.height))
         super.init(size: size)
 
         // Đặt center của scene là toạ độ gốc
         anchorPoint = CGPointMake(0.5, 0.5)
 
-        let bgNode = SKSpriteNode(color: .gray, size: size)
-
-        addChild(bgNode)
-
-
-        let layerPostion = CGPointMake(-cellWidth * Double(Config.NumColumns) / 2, -cellHeight * Double(Config.NumRows) / 2)
+        let layerPostion = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2)
 
         setupGridLayer()
 
         ballsLayer.position = layerPostion
         addChild(ballsLayer)
+        backgroundColor = .white
 
-        invisibleNode.position = layerPostion
-        invisibleNode.zPosition = tailAnimationZPosition
-        addChild(invisibleNode)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -75,39 +65,33 @@ class GameScene: SKScene, ObservableObject {
     /// Vẽ lưới 9x9 trên màn hình
     private func setupGridLayer() {
         let gridLayer = SKNode()
-        let position = CGPointMake(-cellWidth * Double(Config.NumColumns) / 2, -cellHeight * Double(Config.NumRows) / 2)
+        let position = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2)
         gridLayer.position = position
         gridLayer.zPosition = gridZPosition
         addChild(gridLayer)
 
-        var imageName = ""
-        for row in 0..<Config.NumRows {
-            for col in 0..<Config.NumColumns {
-                if row == 0 && col == 0 { // góc trái dưới
-                    imageName = "Tile_7"
-                } else if (row == 0 && col == Config.NumColumns - 1) { // góc phải dưới
-                    imageName = "Tile_9"
-                } else if (row == Config.NumRows - 1 && col == 0) { // góc trái trên
-                    imageName = "Tile_1"
-                } else if (row == Config.NumRows - 1 && col == Config.NumColumns - 1) { // góc phải trên
-                    imageName = "Tile_3";
-                } else if (row == 0 ) { // cạnh dưới
-                    imageName = "Tile_8"
-                } else if (row == Config.NumRows - 1) { // cạnh trên
-                    imageName = "Tile_2";
-                } else if (col == 0 ) { // cạnh trái
-                    imageName = "Tile_4";
-                } else if (col == Config.NumColumns - 1) { // cạnh phải
-                    imageName = "Tile_6";
-                } else { // những ô bên trong
-                    imageName = "Tile_5";
-                }
-                let tileNode = SKSpriteNode(imageNamed: imageName)
-                let cell = Cell(column: col, row: row)
-                tileNode.position = cell.toPoint
-                tileNode.zPosition = 3
-                gridLayer.addChild(tileNode)
-            }
+        for col in 0..<Config.NumColumns + 1 {
+            let verticalLine = SKShapeNode()
+            verticalLine.zPosition = gridZPosition
+            let pathToDraw = CGMutablePath()
+            pathToDraw.move(to: CGPoint(x: col * Int(Cell.width), y: 0))
+            pathToDraw.addLine(to:CGPoint(x: col * Int(Cell.width), y: Config.NumRows * Int(Cell.height)))
+            verticalLine.path = pathToDraw
+            verticalLine.strokeColor = SKColor.lightGray
+            verticalLine.lineWidth = 1
+            gridLayer.addChild(verticalLine)
+        }
+
+        for row in 0..<Config.NumRows + 1 {
+            let horizontalLine = SKShapeNode()
+            horizontalLine.zPosition = gridZPosition
+            let pathToDraw = CGMutablePath()
+            pathToDraw.move(to: CGPoint(x: 0, y: row * Int(Cell.height) ))
+            pathToDraw.addLine(to:CGPoint(x: Config.NumColumns * Int(Cell.width), y: row * Int(Cell.height)))
+            horizontalLine.path = pathToDraw
+            horizontalLine.strokeColor = SKColor.lightGray
+            horizontalLine.lineWidth = 1
+            gridLayer.addChild(horizontalLine)
         }
     }
 
@@ -123,10 +107,6 @@ class GameScene: SKScene, ObservableObject {
     /// Ẩn ball được chọn bằng cách tắt animation và đưa ball về trung tâm của cell
     private func hideSelectionIndicator(ball: Ball) {
         ball.stopJumping()
-        let centerPoint = ball.cell.toPoint
-        let moveToCenterAction = SKAction.move(to: centerPoint, duration: 0.1)
-        moveToCenterAction.timingMode = .easeInEaseOut
-        ball.sprite.run(moveToCenterAction)
     }
 
 
@@ -275,16 +255,6 @@ class GameScene: SKScene, ObservableObject {
 
     }
 
-    private func tailFor(ball: Ball) -> SKEmitterNode {
-        let smoke = SKEmitterNode(fileNamed: "Smoke.sks")!
-        smoke.targetNode = invisibleNode
-        smoke.particleColorSequence = nil
-        smoke.particleColorBlendFactor = 1
-        smoke.particleBlendMode = .alpha
-        smoke.particleColor = UIColor(named: "ball-color-\(ball.ballType)") ?? .red
-        return smoke
-    }
-
     private func animate(move: Move) async {
 
         guard let beginCell = move.cells.first, let endCell = move.cells.last, let ball = ballManager.ballAt(cell: beginCell) else {
@@ -294,31 +264,7 @@ class GameScene: SKScene, ObservableObject {
         hideSelectionIndicator(ball: ball)
         seletecBall = nil
 
-        ball.sprite.addChild(tailFor(ball: ball))
-
-        var count = 0
-        let path = CGMutablePath()
-
-        let cells = move.cells
-
-        var p: CGPoint = cells[count].toPoint  //   point(column: cells[count].column, row: cells[count].row)
-        path.move(to: p)
-        count += 1
-
-        repeat {
-            p =  cells[count].toPoint// point(column:  cells[count].column, row:  cells[count].row)
-            path.addLine(to: p)
-            count += 1
-        } while (count < cells.count)
-
-        let duration = 0.05
-        let moveAction = SKAction.follow(path, asOffset: false, orientToPath: false, duration: duration * Double(cells.count))
-        moveAction.timingMode = .easeInEaseOut
-
-        await ball.sprite.run(moveAction)
-
-
-        ball.sprite.removeAllChildren()
+        await ball.animateMove(cells: move.cells)
 
         if let smallBallCell = move.smallBallCell, let smallBall = ballManager.ballAt(cell: endCell) {
             let sprite = smallBall.sprite
@@ -331,25 +277,11 @@ class GameScene: SKScene, ObservableObject {
 
     }
 
-    private func findMatchesBall(balls: Set<Ball>) -> Set<Chain> {
-
-        var chains = Set<Chain>() // những chain chứa ball ăn điểm
-        for ball in balls {
-            let chain = ballManager.findMatchesBall(centerBall: ball)
-            if chain.count != 0 {
-                chains.inserts(chain)
-            }
-        }
-
-        return chains
-
-    }
-
     private func beginNextTurn() async {
         let bigBalls = ballManager.addNextBigBalls()
         await animateShowBigBalls(bigBalls)
 
-        let matchedBalls = findMatchesBall(balls: bigBalls)
+        let matchedBalls = ballManager.findMatchChains(balls: bigBalls)
         if matchedBalls.isEmpty {
             let smallBalls = ballManager.addNextSmallBalls()
             await animateAddSmallBalls(smallBalls)
@@ -372,7 +304,7 @@ class GameScene: SKScene, ObservableObject {
                 await animate(move:move)
                 ballManager.performMove(move: move)
                 if let movedBall = ballManager.ballAt(cell: toCell) {
-                    let matchedBalls = findMatchesBall(balls: [movedBall])
+                    let matchedBalls = ballManager.findMatchChains(balls: [movedBall])
                     if matchedBalls.isEmpty {
                         await beginNextTurn()
                     } else {
@@ -551,28 +483,9 @@ extension GameScene {
             return
         }
 
-        var count = move.cells.count - 1
-        let path = CGMutablePath()
-        let points = move.cells
+        let cells: [Cell] = move.cells.reversed()
+        await ball.animateMove(cells: cells)
 
-        ball.sprite.addChild(tailFor(ball: ball))
-
-        var p: CGPoint = points[count].toPoint// point(column: points[count].column, row: points[count].row)
-        path.move(to: p)
-        count -= 1
-
-        repeat {
-            p = points[count].toPoint //point(column: points[count].column, row: points[count].row)
-            path.addLine(to: p)
-            count -= 1
-        } while (count >= 0)
-
-        let duration = 0.05
-        let moveAction = SKAction.follow(path, asOffset: false, orientToPath: false, duration: duration * Double(move.cells.count))
-        moveAction.timingMode = .easeInEaseOut
-
-        await ball.sprite.run(moveAction)
-        ball.sprite.removeAllChildren()
 
         if let smallBallCell = move.smallBallCell {
             if let smallBall = ballManager.ballAt(cell: smallBallCell) {
@@ -608,32 +521,3 @@ extension GameScene {
         }
     }
 }
-
-
-/*
-extension GameScene {
-    /// Tính point tâm của hàng cột tương ứng ( gốc 0,0 là left,bottom)
-    /// - Parameters:
-    ///   - column: cột
-    ///   - row: hàng
-    /// - Returns: point tâm của ô
-    private func point(column: Int, row: Int) -> CGPoint {
-        // Do dùng toạ độ tâm nên cần cộng thêm 0.5 width và 0.5 height
-        return CGPointMake(Double(column) * cellWidth + cellWidth * 0.5, Double(row) * cellHeight + cellHeight * 0.5)
-    }
-
-    /// Chuyển từ toạ độ x,y thành cell(column,row). Gốc 0,0 là góc trái, dưới
-    private func cell(fromPoint: CGPoint) -> Cell? {
-        if fromPoint.x >= 0 && fromPoint.x < Double(Config.NumColumns) * cellWidth &&
-            fromPoint.y >= 0 && fromPoint.y < Double(Config.NumRows) * cellHeight {
-            let column: Int = Int(fromPoint.x / cellWidth)
-            let row: Int = Int(fromPoint.y / cellHeight)
-            return Cell(column: column, row: row)
-        } else {
-            return nil
-        }
-    }
-}
-
-
-*/

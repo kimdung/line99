@@ -189,8 +189,9 @@ class BallManager {
         }
 
         if let smallBall = ballAt(cell: endCell), !smallBall.isBig {
-            performMoveSmallBall(smallBall: smallBall, toCell: move.smallBallCell)
+            temporaryRemove(smallBall: smallBall)
             performMove(ball: ball, toCell: endCell)
+            performMoveSmallBall(smallBall: smallBall, toCell: move.smallBallCell)
         } else {
             performMove(ball: ball, toCell: endCell)
         }
@@ -211,6 +212,12 @@ class BallManager {
         ball.row = toCell.row
     }
 
+    private func temporaryRemove(smallBall: Ball) {
+        balls[smallBall.column][smallBall.row] = nil
+        smallBall.column = NSNotFound
+        smallBall.row = NSNotFound
+    }
+
     private func performMoveSmallBall(smallBall: Ball, toCell emptyCell: Cell?) {
         if let emptyCell = emptyCell {
             smallBall.column = emptyCell.column;
@@ -225,7 +232,19 @@ class BallManager {
         return (column >= 0 && column < Config.NumColumns && row >= 0 && row < Config.NumRows)
     }
 
-    func findMatchesBall(centerBall: Ball) -> Set<Chain> {
+    func findMatchChains(balls: Set<Ball>) -> Set<Chain> {
+        var chains = Set<Chain>()
+        for ball in balls {
+            let chain = findMatcheChains(ball: ball)
+            if !chain.isEmpty {
+                chains.inserts(chain)
+            }
+        }
+        return chains
+    }
+
+
+    private func findMatcheChains(ball centerBall: Ball) -> Set<Chain> {
         var set = Set<Chain>()
         let iCenter = centerBall.column
         let jCenter = centerBall.row
@@ -288,7 +307,6 @@ class BallManager {
             }
         }
         if set.count > 0 {
-//            removeBalls(chains: set)
             calculateScore(chains: set)
             return set
         } else {
@@ -335,7 +353,7 @@ class BallManager {
         let cells = findCellsPathFrom(cell: fromCell, toCell: toCell)
 
         if let _ = ballAt(cell: toCell) {
-            let emptyCell = findEmptyCell()
+            let emptyCell = findEmptyCell() ?? fromCell // Không tìm thấy cell trống nào thì trả về cell chứa big ball 
             return Move(cells:cells, smallBallCell: emptyCell)
         } else {
             return Move(cells:cells)
