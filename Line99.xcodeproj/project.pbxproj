@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		CE3167EA29B997D700C29260 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3167E929B997D700C29260 /* Cell.swift */; };
 		CE3167EC29BAE88700C29260 /* Set+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3167EB29BAE88700C29260 /* Set+Extension.swift */; };
+		CE3167EE29BB1F3C00C29260 /* MyScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = CE3167ED29BB1F3C00C29260 /* MyScene.sks */; };
+		CE3167F029BB250000C29260 /* OutlineLabelNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3167EF29BB250000C29260 /* OutlineLabelNode.swift */; };
 		CE6E579527313F98005AC466 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E579427313F98005AC466 /* AppDelegate.swift */; };
 		CE6E579B27313F98005AC466 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E579A27313F98005AC466 /* GameScene.swift */; };
 		CE6E579D27313F98005AC466 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E579C27313F98005AC466 /* GameViewController.swift */; };
@@ -28,6 +30,7 @@
 		CEAF9D8129A75878007F0503 /* balls-hd.plist in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7929A75878007F0503 /* balls-hd.plist */; };
 		CEAF9D8229A75878007F0503 /* balls-hd.png in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7A29A75878007F0503 /* balls-hd.png */; };
 		CEAF9D8429A75879007F0503 /* balls-ipad-hd.png in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9D7C29A75878007F0503 /* balls-ipad-hd.png */; };
+		CECEF9EF29BEC4B300AF5DB2 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = CECEF9EE29BEC4B300AF5DB2 /* GameScene.sks */; };
 		CED678DC29B2ECE4007A4140 /* MyParticle.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678DB29B2ECE4007A4140 /* MyParticle.sks */; };
 		CED678DE29B2ED0E007A4140 /* Fire.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678DD29B2ED0E007A4140 /* Fire.sks */; };
 		CED678E029B2EF90007A4140 /* Smoke.sks in Resources */ = {isa = PBXBuildFile; fileRef = CED678DF29B2EF90007A4140 /* Smoke.sks */; };
@@ -44,6 +47,8 @@
 /* Begin PBXFileReference section */
 		CE3167E929B997D700C29260 /* Cell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cell.swift; sourceTree = "<group>"; };
 		CE3167EB29BAE88700C29260 /* Set+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Set+Extension.swift"; sourceTree = "<group>"; };
+		CE3167ED29BB1F3C00C29260 /* MyScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = MyScene.sks; sourceTree = "<group>"; };
+		CE3167EF29BB250000C29260 /* OutlineLabelNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutlineLabelNode.swift; sourceTree = "<group>"; };
 		CE6E579127313F98005AC466 /* Line99.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Line99.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE6E579427313F98005AC466 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CE6E579A27313F98005AC466 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
@@ -76,6 +81,7 @@
 		CEAF9D7929A75878007F0503 /* balls-hd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "balls-hd.plist"; sourceTree = "<group>"; };
 		CEAF9D7A29A75878007F0503 /* balls-hd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "balls-hd.png"; sourceTree = "<group>"; };
 		CEAF9D7C29A75878007F0503 /* balls-ipad-hd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "balls-ipad-hd.png"; sourceTree = "<group>"; };
+		CECEF9EE29BEC4B300AF5DB2 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
 		CED678DB29B2ECE4007A4140 /* MyParticle.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = MyParticle.sks; sourceTree = "<group>"; };
 		CED678DD29B2ED0E007A4140 /* Fire.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Fire.sks; sourceTree = "<group>"; };
 		CED678DF29B2EF90007A4140 /* Smoke.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Smoke.sks; sourceTree = "<group>"; };
@@ -121,6 +127,7 @@
 			children = (
 				CE6E579427313F98005AC466 /* AppDelegate.swift */,
 				CE6E579A27313F98005AC466 /* GameScene.swift */,
+				CECEF9EE29BEC4B300AF5DB2 /* GameScene.sks */,
 				CE6E579C27313F98005AC466 /* GameViewController.swift */,
 				CE6E579E27313F98005AC466 /* Main.storyboard */,
 				CE6E57A327313F9B005AC466 /* LaunchScreen.storyboard */,
@@ -134,6 +141,7 @@
 				CE3167EB29BAE88700C29260 /* Set+Extension.swift */,
 				CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */,
 				CE3167E929B997D700C29260 /* Cell.swift */,
+				CE3167EF29BB250000C29260 /* OutlineLabelNode.swift */,
 				CED678E729B5A30F007A4140 /* OriginCode */,
 				CE6E57A127313F9B005AC466 /* Assets.xcassets */,
 				CEAF9CBC29A75622007F0503 /* Line99-Bridging-Header.h */,
@@ -144,6 +152,7 @@
 				CED678DF29B2EF90007A4140 /* Smoke.sks */,
 				CED678E129B2EFBE007A4140 /* Spark.sks */,
 				CED678E329B2F27F007A4140 /* Magic.sks */,
+				CE3167ED29BB1F3C00C29260 /* MyScene.sks */,
 			);
 			path = Line99;
 			sourceTree = "<group>";
@@ -256,7 +265,9 @@
 			files = (
 				CEAF9D8229A75878007F0503 /* balls-hd.png in Resources */,
 				CED678E029B2EF90007A4140 /* Smoke.sks in Resources */,
+				CE3167EE29BB1F3C00C29260 /* MyScene.sks in Resources */,
 				CE6E57A027313F98005AC466 /* Main.storyboard in Resources */,
+				CECEF9EF29BEC4B300AF5DB2 /* GameScene.sks in Resources */,
 				CEAF9D7F29A75878007F0503 /* button_bg@2x.png in Resources */,
 				CEAF9D8029A75878007F0503 /* config_bt@2x.png in Resources */,
 				CEAF9D7E29A75878007F0503 /* balls-ipad-hd.plist in Resources */,
@@ -296,6 +307,7 @@
 				CE6E579527313F98005AC466 /* AppDelegate.swift in Sources */,
 				CED678F029B71914007A4140 /* Chain.swift in Sources */,
 				CED678EC29B6DE06007A4140 /* BallManager.swift in Sources */,
+				CE3167F029BB250000C29260 /* OutlineLabelNode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

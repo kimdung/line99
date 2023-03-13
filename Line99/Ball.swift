@@ -140,12 +140,15 @@ extension Ball {
 
     func animateShaking() {
         let duration = 0.1
-        let moveRight = SKAction.moveBy(x: 4, y: 0, duration: duration)
+        let center = cell.toPoint
+        let moveRight = SKAction.moveTo(x: center.x + 3, duration: duration)
         moveRight.timingMode = .easeInEaseOut
-        let moveLeft = SKAction.moveBy(x: -4, y: 0, duration: duration)
+        let moveLeft = SKAction.moveTo(x: center.x - 3, duration: duration)
         moveLeft.timingMode = .easeInEaseOut
+        let moveToCenter = SKAction.moveTo(x: center.x, duration: duration)
         let shakeAction = SKAction.repeat(SKAction.sequence([moveLeft, moveRight]), count: 2)
-        sprite.run(shakeAction)
+        let action = SKAction.sequence([shakeAction, moveToCenter])
+        sprite.run(action)
     }
 
     private var explodeSpriteTextures: [SKTexture] {

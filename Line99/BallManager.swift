@@ -16,7 +16,20 @@ class BallManager {
     private var comboMultiplier = 1
     private var undoArr = [UndoMove]()
 
+    var score: Int {
+        var value = 0
+        undoArr.forEach { undoMove in
+            undoMove.justExplodedChains.forEach { chain in
+                value += chain.score
+            }
+        }
+        return value
+    }
+
     func shuffle() -> Set<Ball> {
+        if let savedUndos = loadUndoMove() {
+            undoArr = savedUndos
+        }
         if let loadedArr = loadBalls() {
             balls = loadedArr
             var set = Set<Ball>()
@@ -29,10 +42,11 @@ class BallManager {
             }
             return set
         }
+
         return createInitialBalls()
     }
 
-    func createInitialBalls() -> Set<Ball> {
+    private func createInitialBalls() -> Set<Ball> {
         var remain, count, count2: UInt32
         var stop: Bool
 
@@ -474,6 +488,11 @@ extension BallManager {
 
     var lastUndo: UndoMove? {
         return undoArr.last
+    }
+
+    func save() {
+        saveBalls()
+        saveUndoData()
     }
 
     func undo() {

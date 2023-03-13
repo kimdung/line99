@@ -34,43 +34,127 @@ class GameScene: SKScene, ObservableObject {
 
     private var touchedCell: Cell? = nil
 
-    override init() {
-        let size = CGSize(width: max(360, Double(Config.NumColumns) * Cell.width), height: max(360, Double(Config.NumRows) * Cell.height))
+    private static let headerHeight = 60.0
+    private let layerPosition = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2 - headerHeight/2)
+
+    /*    override init() {
+        let size = CGSize(width: 360, height: 400)
         super.init(size: size)
 
         // Đặt center của scene là toạ độ gốc
         anchorPoint = CGPointMake(0.5, 0.5)
 
-        let layerPostion = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2)
+//        let layerPostion = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2)
 
         setupGridLayer()
 
-        ballsLayer.position = layerPostion
+        ballsLayer.position = layerPosition
         addChild(ballsLayer)
         backgroundColor = .white
 
     }
 
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    */
+
+
+    private var score: Int = 0 {
+        didSet {
+            scoreLabelNode.text = "\(score)"
+
+            let x = frame.maxX - scoreLabelNode.frame.size.width / 2 - 5
+            let moveAction = SKAction.moveTo(x: x, duration: 0)
+
+            let scaleUpAction = SKAction.scale(by:  oldValue < score ? 1.2 : 0.8, duration: 0.25)
+            let scaleDownAction = scaleUpAction.reversed()
+            let action = SKAction.sequence([moveAction, scaleUpAction, scaleDownAction])
+            action.timingMode = .easeInEaseOut
+            scoreLabelNode.run(action)
+        }
+    }
+
+    private var scoreLabelNode: SKLabelNode!
+    private var timerLabel: SKLabelNode!
+
+    private var startDate: Date?
 
     func startGame() {
         removeAllBallSprites()
         let newBalls = ballManager.shuffle()
+        score = ballManager.score
         addSprites(forBalls: newBalls)
+
+        startDate = Date()
     }
 
+//    override func update(_ currentTime: TimeInterval) {
+//        // update score
+//        if currentScore < newScore {
+//            currentScore += 1
+//
+//        }
+//        if currentScore > newScore {
+//            currentScore -= 1
+//        }
+//        scoreLabelNode.text = "\(currentScore)"
+//    }
+
+    override func didMove(to view: SKView) {
+        setupView()
+        updateTimer()
+
+    }
+
+
+
+    private func updateTimerLabel() {
+        guard let startDate = startDate else {
+            return
+        }
+        let timeElaps = Date().timeIntervalSince(startDate)
+        let aaa = secondsToHoursMinutesSeconds(Int(timeElaps))
+        let text = "\(aaa.hours):\(aaa.minutes):\(aaa.seconds)"
+        timerLabel.text = text
+
+    }
+
+    func secondsToHoursMinutesSeconds(_ seconds: Int) -> (hours: Int, minutes: Int, seconds: Int) {
+        return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
+    }
+
+    private func updateTimer() {
+        let updateTimerAction = SKAction.run { [weak self] in
+            self?.updateTimerLabel()
+        }
+        let waitAction = SKAction.wait(forDuration: 1)
+        run(SKAction.repeatForever(SKAction.sequence([updateTimerAction, waitAction])))
+    }
+
+
+    private func setupView() {
+        anchorPoint = CGPointMake(0.5, 0.5)
+        setupGridLayer()
+
+        ballsLayer.position = layerPosition
+        addChild(ballsLayer)
+        backgroundColor = .white
+        scoreLabelNode = (childNode(withName: "scoreLabel") as! SKLabelNode)
+        timerLabel = (childNode(withName: "timerLabel") as! SKLabelNode)
+
+        updateTimer()
+    }
 
     /// Vẽ lưới 9x9 trên màn hình
     private func setupGridLayer() {
         let gridLayer = SKNode()
-        let position = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2)
-        gridLayer.position = position
+        gridLayer.position = layerPosition
         gridLayer.zPosition = gridZPosition
         addChild(gridLayer)
 
-        for col in 0..<Config.NumColumns + 1 {
+        for col in 0...Config.NumColumns {
             let verticalLine = SKShapeNode()
             verticalLine.zPosition = gridZPosition
             let pathToDraw = CGMutablePath()
@@ -82,7 +166,7 @@ class GameScene: SKScene, ObservableObject {
             gridLayer.addChild(verticalLine)
         }
 
-        for row in 0..<Config.NumRows + 1 {
+        for row in 0...Config.NumRows {
             let horizontalLine = SKShapeNode()
             horizontalLine.zPosition = gridZPosition
             let pathToDraw = CGMutablePath()
@@ -200,9 +284,6 @@ class GameScene: SKScene, ObservableObject {
     }
 
     private func animateMatched(chains: Set<Chain>) async {
-        for chain in chains {
-            animateScore(forChain: chain)
-        }
 
         var set = Set<Ball>()
         for chain in chains {
@@ -216,42 +297,69 @@ class GameScene: SKScene, ObservableObject {
             }
         }
 
-        return await withTaskGroup(of: Void.self) { group in
+        await withTaskGroup(of: Void.self) { group in
+            var score = 0
+            for chain in chains {
+                score += chain.score
+                group.addTask {
+                    await self.animateScore(forChain: chain)
+                }
+            }
+
             for ball in set {
                 group.addTask {
                     await ball.explodeAndRemove()
                 }
             }
+            self.score += score
+
         }
     }
 
 
     /// Hiển thị score của chain
     /// - Parameter chain: chuỗi các ball ăn điểm
-    private func animateScore(forChain chain: Chain) {
-        guard let ball1 = chain.balls.first, let lastBall1 = chain.balls.last else {
+    private func animateScore(forChain chain: Chain) async {
+        guard let firstCell = chain.balls.first?.cell, let lastCell = chain.balls.last?.cell else {
             return
         }
 
-        guard let firstBall = ballManager.ballAt(cell: ball1.cell), let lastBall = ballManager.ballAt(cell: lastBall1.cell) else {
+        guard let firstBall = ballManager.ballAt(cell: firstCell), let lastBall = ballManager.ballAt(cell: lastCell) else {
             return
         }
 
-        let centerPoint = CGPointMake((firstBall.sprite.position.x + lastBall.sprite.position.x) / 2,
+        let chainCenterPoint = CGPointMake((firstBall.sprite.position.x + lastBall.sprite.position.x) / 2,
                                       (firstBall.sprite.position.y + lastBall.sprite.position.y) / 2)
-        let scoreLabel = SKLabelNode(fontNamed: "GillSans-Italic")
-        scoreLabel.fontSize = 16
-        scoreLabel.fontColor = UIColor.blue
-        scoreLabel.text = "\(chain.score)"
-        scoreLabel.position = centerPoint
-        scoreLabel.zPosition = scoreZPosition
-        ballsLayer.addChild(scoreLabel)
 
-        let action = SKAction.move(by: CGVector(dx: 0, dy: 4), duration: 0.8)
-        action.timingMode = .easeInEaseOut
-        scoreLabel.run(SKAction.sequence([SKAction.group([action, SKAction.fadeOut(withDuration: 0.8)]),
-                                          SKAction.removeFromParent()
-                                         ]))
+        let scoreLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold", text: "\(chain.score)", fontSize: 20, textColor: .blue, shadowColor: .lightGray)
+
+        scoreLabel.position = chainCenterPoint
+        scoreLabel.zPosition = scoreZPosition
+        scoreLabel.verticalAlignmentMode = .center
+//        scoreLabel.addStroke(color: .lightGray, width: 4)
+        ballsLayer.addChild(scoreLabel)
+//        scoreLabelNode.text = "\(chain.score)"
+//
+//        let outlinelbl = LFOutlinedLabel(size: CGSize(width: 80, height: 40), font: "Courier-Bold", fSize: 20, fColor: .yellow, bSize: 2, bColor: .black, bOpacity: 0.8)
+//
+//        outlinelbl.text = "Test"
+//        outlinelbl.update()
+//        outlinelbl.position = centerPoint
+//        ballsLayer.addChild(outlinelbl)
+
+        let moveUpAction = SKAction.move(by: CGVector(dx: 0, dy: 0), duration: 0.75)
+        let scaleAction = SKAction.scale(to: 1.2, duration: 0.75)
+        let waitAndfadeOutAction = SKAction.sequence([SKAction.wait(forDuration: 0.35), SKAction.fadeOut(withDuration: 0.4)])
+
+        let groupActions = SKAction.group([moveUpAction, scaleAction, waitAndfadeOutAction])
+        groupActions.timingMode = .easeIn
+
+
+        let action = SKAction.sequence([groupActions, SKAction.removeFromParent()])
+        await scoreLabel.run(action)
+//        scoreLabel.run(SKAction.sequence([SKAction.group([action, SKAction.fadeOut(withDuration: 0.8)])
+//                                          SKAction.removeFromParent()
+//                                         ]))
 
     }
 
@@ -268,7 +376,7 @@ class GameScene: SKScene, ObservableObject {
 
         if let smallBallCell = move.smallBallCell, let smallBall = ballManager.ballAt(cell: endCell) {
             let sprite = smallBall.sprite
-            let p = smallBallCell.toPoint//  point(column: smallBallCell.column, row: smallBallCell.row)
+            let p = smallBallCell.toPoint
             let action = SKAction.sequence([SKAction.fadeOut(withDuration: 0),
                                             SKAction.move(to: p, duration: 0),
                                             SKAction.fadeIn(withDuration: 0.2)])
@@ -292,7 +400,7 @@ class GameScene: SKScene, ObservableObject {
     }
 
     private func tryMoveBall(_ ball: Ball, toCell: Cell) {
-        let fromCell = ball.cell// Cell(column: ball.column, row: ball.row)
+        let fromCell = ball.cell
         let move = ballManager.findMove(cell: fromCell, toCell: toCell)
         let cells = move.cells
         if cells.isEmpty {
@@ -323,7 +431,7 @@ class GameScene: SKScene, ObservableObject {
 extension GameScene {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if isBusy {
+        if isBusy && seletecBall != nil {
             print("isBusy")
         }
         guard let touch = touches.first, !isBusy else {
@@ -398,6 +506,10 @@ extension GameScene {
 // MARK: - Undo
 extension GameScene {
 
+    func save() {
+        ballManager.save()
+    }
+
     func undo() {
         guard let lastUndo = ballManager.lastUndo else {
             return
@@ -413,6 +525,12 @@ extension GameScene {
         ballManager.resetComboMultiplier()
         Task {
             if lastUndo.justExplodedChains.count != 0 {
+                var score = 0
+                for chain in lastUndo.justExplodedChains {
+                    score += chain.score
+                }
+                self.score -= score
+
                 let balls = ballManager.undoDestroy(chains: lastUndo.justExplodedChains)
                 await animateUndoExplode(balls)
 

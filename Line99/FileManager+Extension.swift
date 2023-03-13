@@ -8,13 +8,13 @@
 import Foundation
 
 extension FileManager {
-    private static func getDocumentsDirectory() -> URL {
+    private class func getDocumentsDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDirectory = paths[0]
         return documentsDirectory
     }
 
-    static func saveDataToDocuments(_ data: Data, fileName: String) {
+    class func saveDataToDocuments(_ data: Data, fileName: String) {
         let fullFileName = getDocumentsDirectory().appendingPathComponent(fileName)
         do {
             try data.write(to: fullFileName, options: .atomic)
@@ -23,8 +23,13 @@ extension FileManager {
         }
     }
 
-    static func readDataFromFile(fileName: String) -> Data? {
+    class func readDataFromFile(fileName: String) -> Data? {
+
         let fullFileName = getDocumentsDirectory().appendingPathComponent(fileName)
+//        guard FileManager.default.fileExists(atPath: fullFileName.absoluteString) else {
+//            print("file not found \(fullFileName)")
+//            return nil
+//        }
         do {
             let data = try Data(contentsOf: fullFileName)
             return data
