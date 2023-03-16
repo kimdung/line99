@@ -14,6 +14,11 @@ struct Move: Codable {
     /// Nếu điểm đến có small ball thì đưa small ball đến small cell
     var smallBallCell: Cell?
 
+    private enum CodingKeys: String, CodingKey {
+        case cells = "cs"
+        case smallBallCell = "bc"
+    }
+
 }
 
 class UndoMove: Codable {
@@ -21,4 +26,11 @@ class UndoMove: Codable {
     var justAdddedSmallBalls: Set<Cell> = Set()
     var justExplodedChains: Set<Chain> = Set()
     var justMoved: Move = Move()
+
+    private enum CodingKeys: String, CodingKey {
+        case justAddedBigBalls = "bb"
+        case justAdddedSmallBalls = "sb"
+        case justExplodedChains = "ec"
+        case justMoved = "jm"
+    }
 }

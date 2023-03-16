@@ -6,7 +6,8 @@
 //
 
 import Foundation
-
+import Combine
+import UIKit
 
 class BallManager {
 
@@ -14,24 +15,67 @@ class BallManager {
                                   count: Config.NumColumns)
 
     private var comboMultiplier = 1
-    private var undoArr = [UndoMove]()
 
-    var score: Int {
-        var value = 0
-        undoArr.forEach { undoMove in
-            undoMove.justExplodedChains.forEach { chain in
-                value += chain.score
-            }
-        }
-        return value
+    @Published private var undoArr = [UndoMove]()
+    @Published private(set) var score = 0
+    @Published private(set) var explodedBalls = 0
+    @Published private(set) var gameOver: Bool = false
+
+    private var gameStartDate: Date = Date()
+    private var gamePauseDuration: TimeInterval = 0
+
+    private var appEnterBackgroundDate: Date?
+
+    var movedCount: AnyPublisher<Int, Never> {
+        return $undoArr.map { arr -> Int in
+            return arr.count
+        }.eraseToAnyPublisher()
     }
 
-    func shuffle() -> Set<Ball> {
-        if let savedUndos = loadUndoMove() {
-            undoArr = savedUndos
+    var playDuration: TimeInterval {
+        return Date().timeIntervalSince(gameStartDate) - gamePauseDuration
+    }
+
+    init() {
+        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification , object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: UIApplication.willEnterForegroundNotification , object: nil)
+    }
+
+    @objc
+    func appDidEnterBackground() {
+        save()
+        appEnterBackgroundDate = Date()
+    }
+
+    @objc
+    func appWillEnterForeground() {
+        if let date = appEnterBackgroundDate {
+            gamePauseDuration += Date().timeIntervalSince(date)
+            appEnterBackgroundDate = nil
         }
-        if let loadedArr = loadBalls() {
-            balls = loadedArr
+    }
+
+    func beginNewGame() -> Set<Ball> {
+        undoArr.removeAll()
+        resetComboMultiplier()
+        score = 0
+        explodedBalls = 0
+        gameStartDate = Date()
+        gamePauseDuration = 0
+        gameOver = false
+        save()
+        return createInitialBalls()
+    }
+
+    
+    /// Bắt đầu play hoặc load lại trạng thái từ lần chơi trước
+    func beginGame() -> Set<Ball> {
+        if let savedData = load() {
+            undoArr = savedData.undos
+            balls = savedData.balls
+            gameStartDate = savedData.startDate
+            gamePauseDuration = savedData.pauseDuration
+            updateScoreAndExplodeBall(savedUndoData: undoArr)
             var set = Set<Ball>()
             for arr in balls {
                 for ball in arr {
@@ -43,7 +87,7 @@ class BallManager {
             return set
         }
 
-        return createInitialBalls()
+        return beginNewGame()
     }
 
     private func createInitialBalls() -> Set<Ball> {
@@ -99,6 +143,7 @@ class BallManager {
         count = countEmptyCell()
 
         if count == 0 {
+            gameOver = true
             return set
         }
 
@@ -254,7 +299,56 @@ class BallManager {
                 chains.inserts(chain)
             }
         }
+        updateScoreAndExplodeBall(matchedChains: chains)
         return chains
+    }
+
+    private func updateScoreAndExplodeBall(savedUndoData: [UndoMove]) {
+        var savedScore = 0
+        savedUndoData.forEach { undoMove in
+            undoMove.justExplodedChains.forEach { chain in
+                savedScore += chain.score
+            }
+        }
+        score = savedScore
+
+        var savedExplodedBalls = 0
+        savedUndoData.forEach { undoMove in
+            var set: Set<Ball> = Set()
+            undoMove.justExplodedChains.forEach { chain in
+                set.inserts(Set(chain.balls))
+            }
+            savedExplodedBalls += set.count
+        }
+        explodedBalls = savedExplodedBalls
+    }
+
+    private func updateScoreAndExplodeBall(matchedChains chains: Set<Chain>) {
+        if chains.isEmpty {
+            return
+        }
+        var newScore = 0
+        var balls: Set<Ball> = Set()
+        chains.forEach { chain in
+            newScore += chain.score
+            balls.inserts(Set(chain.balls))
+        }
+        score += newScore
+        explodedBalls += balls.count
+    }
+
+    private func updateScoreAndExplodeBall(explodedChains chains: Set<Chain>) {
+        if chains.isEmpty {
+            return
+        }
+        var newScore = 0
+        var balls: Set<Ball> = Set()
+        chains.forEach { chain in
+            newScore += chain.score
+            balls.inserts(Set(chain.balls))
+        }
+        score -= newScore
+        explodedBalls -= balls.count
     }
 
 
@@ -490,17 +584,13 @@ extension BallManager {
         return undoArr.last
     }
 
-    func save() {
-        saveBalls()
-        saveUndoData()
-    }
-
     func undo() {
         guard let lastUndo = undoArr.last else {
             return
         }
         undoArr.removeLast()
         print("======")
+        updateScoreAndExplodeBall(explodedChains: lastUndo.justExplodedChains)
 
         removeSmallBalls(lastUndo.justAdddedSmallBalls)
         revertBigBallsToSmall(lastUndo.justAddedBigBalls)
@@ -570,67 +660,33 @@ extension BallManager {
 // MARK: - Save and Load
 extension BallManager {
 
-    private struct UndoMoveWrapped: Codable {
-        var values: [UndoMove]
+    private struct SaveData: Codable {
+        var undos: [UndoMove]
+        var balls: [[Ball?]]
+        var startDate: Date
+        var pauseDuration: TimeInterval
     }
 
-    private func saveUndoData() {
-
-        let wrappedValue = UndoMoveWrapped(values: undoArr)
+    func save() {
+        let saveData = SaveData(undos: undoArr, balls: balls, startDate: gameStartDate, pauseDuration: gamePauseDuration)
         do {
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(wrappedValue)
-            FileManager.saveDataToDocuments(data, fileName: "undos.json")
-            print(String(data: data, encoding: .utf8)!)
+            let data = try JSONEncoder().encode(saveData)
+            let fileName = try FileManager.saveDataToDocuments(data, fileName: "save.json")
+            print("saved data to \(fileName)")
         } catch {
-            print("error \(error)")
+            print("Save data error \(error)")
         }
     }
 
-    private func loadUndoMove() -> [UndoMove]? {
-        if let data = FileManager.readDataFromFile(fileName: "undos.json") {
-            do {
-                let values = try JSONDecoder()
-                    .decode(UndoMoveWrapped.self, from: data)
-                return values.values
 
-            } catch {
-                print("Retrieve Failed \(error)")
-                return nil
-            }
-        }
-        return nil
-    }
-
-    private struct BallsWrapped: Codable {
-        var values: [[Ball?]]
-    }
-
-    private func saveBalls() {
-        let wrappedValue = BallsWrapped(values: balls)
+    private func load() -> SaveData? {
         do {
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(wrappedValue)
-            FileManager.saveDataToDocuments(data, fileName: "balls.json")
-            print(String(data: data, encoding: .utf8)!)
+            let data = try FileManager.readDataFromFile(fileName: "save.json")
+            let savedData: SaveData = try JSONDecoder().decode(SaveData.self, from: data)
+            return savedData
         } catch {
-            print("error \(error)")
+            print("Load data error \(error)")
+            return nil
         }
     }
-
-    private func loadBalls() -> [[Ball?]]? {
-        if let data = FileManager.readDataFromFile(fileName: "balls.json") {
-            do {
-                let values = try JSONDecoder()
-                    .decode(BallsWrapped.self, from: data)
-                return values.values
-
-            } catch {
-                print("Retrieve Failed \(error)")
-                return nil
-            }
-        }
-        return nil
-    }
-
 }

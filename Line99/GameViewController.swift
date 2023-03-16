@@ -37,8 +37,12 @@ class GameViewController: UIViewController {
         scene.save()
     }
 
+    @IBAction func restartGameButtonOnClicked(_ sender: Any) {
+        scene.restartGame()
+    }
+
     private func beginGame() {
-        scene.startGame()
+        scene.beginGame()
     }
 
 }

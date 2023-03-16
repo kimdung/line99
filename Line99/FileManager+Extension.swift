@@ -14,29 +14,16 @@ extension FileManager {
         return documentsDirectory
     }
 
-    class func saveDataToDocuments(_ data: Data, fileName: String) {
+    class func saveDataToDocuments(_ data: Data, fileName: String) throws -> String {
         let fullFileName = getDocumentsDirectory().appendingPathComponent(fileName)
-        do {
-            try data.write(to: fullFileName, options: .atomic)
-        } catch {
-            print("Error = \(error)")
-        }
+        try data.write(to: fullFileName, options: .atomic)
+        return fullFileName.absoluteString
     }
 
-    class func readDataFromFile(fileName: String) -> Data? {
-
+    class func readDataFromFile(fileName: String) throws -> Data {
         let fullFileName = getDocumentsDirectory().appendingPathComponent(fileName)
-//        guard FileManager.default.fileExists(atPath: fullFileName.absoluteString) else {
-//            print("file not found \(fullFileName)")
-//            return nil
-//        }
-        do {
-            let data = try Data(contentsOf: fullFileName)
-            return data
-        } catch {
-            print("Error = \(error)")
-        }
-        return nil
+        let data = try Data(contentsOf: fullFileName)
+        return data
     }
 }
 

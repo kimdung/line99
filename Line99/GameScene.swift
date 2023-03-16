@@ -7,6 +7,7 @@
 
 import SpriteKit
 import GameplayKit
+import Combine
 
 class GameScene: SKScene, ObservableObject {
     typealias CompletionBlock = (() -> Void)
@@ -37,6 +38,7 @@ class GameScene: SKScene, ObservableObject {
     private static let headerHeight = 60.0
     private let layerPosition = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2 - headerHeight/2)
 
+    private var cancellableBag = Set<AnyCancellable>()
     /*    override init() {
         let size = CGSize(width: 360, height: 400)
         super.init(size: size)
@@ -79,46 +81,51 @@ class GameScene: SKScene, ObservableObject {
     private var scoreLabelNode: SKLabelNode!
     private var timerLabel: SKLabelNode!
 
-    private var startDate: Date?
 
-    func startGame() {
+    func beginGame() {
         removeAllBallSprites()
-        let newBalls = ballManager.shuffle()
-        score = ballManager.score
+        seletecBall = nil
+        touchedCell = nil
+        let newBalls = ballManager.beginGame()
         addSprites(forBalls: newBalls)
-
-        startDate = Date()
     }
 
-//    override func update(_ currentTime: TimeInterval) {
-//        // update score
-//        if currentScore < newScore {
-//            currentScore += 1
-//
-//        }
-//        if currentScore > newScore {
-//            currentScore -= 1
-//        }
-//        scoreLabelNode.text = "\(currentScore)"
-//    }
+    func restartGame() {
+        removeAllBallSprites()
+        seletecBall = nil
+        touchedCell = nil
+        let newBalls = ballManager.beginNewGame()
+        addSprites(forBalls: newBalls)
+        updateTimerLabel()
+    }
 
     override func didMove(to view: SKView) {
         setupView()
-        updateTimer()
+//        updateTimer()
 
-    }
-
-
-
-    private func updateTimerLabel() {
-        guard let startDate = startDate else {
-            return
+        ballManager.movedCount.sink { count in
+            print("moved \(count)")
         }
-        let timeElaps = Date().timeIntervalSince(startDate)
-        let aaa = secondsToHoursMinutesSeconds(Int(timeElaps))
-        let text = "\(aaa.hours):\(aaa.minutes):\(aaa.seconds)"
-        timerLabel.text = text
+        .store(in: &cancellableBag)
 
+        ballManager.$score.sink { value in
+            self.score = value
+        }
+        .store(in: &cancellableBag)
+
+        ballManager.$explodedBalls.sink { value in
+            print("exploded balls \(value)")
+        }
+        .store(in: &cancellableBag)
+
+        ballManager.$gameOver.removeDuplicates().sink { isGameOver in
+            if isGameOver {
+                self.removeAction(forKey: "updateTimer")
+            } else {
+                self.updateTimer()
+            }
+        }
+        .store(in: &cancellableBag)
     }
 
     func secondsToHoursMinutesSeconds(_ seconds: Int) -> (hours: Int, minutes: Int, seconds: Int) {
@@ -130,9 +137,19 @@ class GameScene: SKScene, ObservableObject {
             self?.updateTimerLabel()
         }
         let waitAction = SKAction.wait(forDuration: 1)
-        run(SKAction.repeatForever(SKAction.sequence([updateTimerAction, waitAction])))
+        run(SKAction.repeatForever(SKAction.sequence([updateTimerAction, waitAction])), withKey: "updateTimer" )
     }
 
+    private func updateTimerLabel() {
+        let duration = secondsToHoursMinutesSeconds(Int(ballManager.playDuration))
+
+        var text = String(format: "%02d:%02d", duration.hours, duration.minutes)
+
+        if duration.hours == 0 {
+            text = String(format: "%02d:%02d", duration.minutes, duration.seconds)
+        }
+        timerLabel.text = text
+    }
 
     private func setupView() {
         anchorPoint = CGPointMake(0.5, 0.5)
@@ -144,7 +161,6 @@ class GameScene: SKScene, ObservableObject {
         scoreLabelNode = (childNode(withName: "scoreLabel") as! SKLabelNode)
         timerLabel = (childNode(withName: "timerLabel") as! SKLabelNode)
 
-        updateTimer()
     }
 
     /// Vẽ lưới 9x9 trên màn hình
@@ -311,7 +327,6 @@ class GameScene: SKScene, ObservableObject {
                     await ball.explodeAndRemove()
                 }
             }
-            self.score += score
 
         }
     }

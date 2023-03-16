@@ -13,6 +13,11 @@ struct Cell: Codable, Hashable {
 
     static let width = 40.0
     static let height = 40.0
+
+    private enum CodingKeys: String, CodingKey {
+        case column = "c"
+        case row = "r"
+    }
 }
 
 extension Cell {

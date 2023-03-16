@@ -36,9 +36,9 @@ class Ball: Codable {
     }
 
     private enum CodingKeys : String, CodingKey {
-        case column
-        case row
-        case ballType
+        case column = "c"
+        case row = "r"
+        case ballType = "t"
     }
 
     required init(from decoder: Decoder) throws {

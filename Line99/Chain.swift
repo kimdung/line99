@@ -9,9 +9,9 @@ import Foundation
 
 class Chain:  Codable {
     private enum CodingKeys: String, CodingKey {
-        case balls
-        case chainType
-        case score
+        case balls = "bs"
+        case chainType = "ct"
+        case score = "s"
     }
 
     enum ChainType: Int {
