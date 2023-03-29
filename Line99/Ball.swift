@@ -162,9 +162,17 @@ extension Ball {
     }
 
     func explodeAndRemove() async {
-        let explodeAction = SKAction.animate(with: explodeSpriteTextures, timePerFrame: 0.05)
-        let removeAction = SKAction.removeFromParent()
-        await sprite.run(SKAction.sequence([explodeAction, removeAction]))
+        let timePerFrame = 0.05
+        let duration = timePerFrame * Double(explodeSpriteTextures.count)
+        if isBig {
+            let explodeAction = SKAction.animate(with: explodeSpriteTextures, timePerFrame: timePerFrame)
+            let removeAction = SKAction.removeFromParent()
+            await sprite.run(SKAction.sequence([explodeAction, removeAction]))
+        } else {
+            let scaleAndFadeOut = SKAction.group([SKAction.scale(to: 0.1, duration: duration),
+                                                  SKAction.fadeOut(withDuration: duration)])
+            await sprite.run(SKAction.sequence([scaleAndFadeOut, SKAction.removeFromParent()]))
+        }
     }
 
     func prepareUndoExplode() {

@@ -45,6 +45,20 @@ class Chain:  Codable {
 
     init() {}
 
+    var ballType: Int {
+        guard let firstBall = balls.first else {
+            print("invalid chain")
+            return 0
+        }
+        return firstBall.ballType
+    }
+
+    var ballCount: Int {
+        var set: Set<Ball> = Set()
+        set.inserts(Set(balls))
+        return set.count
+    }
+
     func addBall(_ ball: Ball?) {
         guard let ball = ball else {
             return

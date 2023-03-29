@@ -12,7 +12,7 @@ import GameplayKit
 class GameViewController: UIViewController {
 
     @IBOutlet weak var gridView: UIView!
-    private let scene = GameScene(fileNamed: "GameScene")!
+    private let scene = GameScene()
     override func viewDidLoad() {
         super.viewDidLoad()
 

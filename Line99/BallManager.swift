@@ -19,12 +19,8 @@ class BallManager {
     @Published private var undoArr = [UndoMove]()
     @Published private(set) var score = 0
     @Published private(set) var explodedBalls = 0
+
     @Published private(set) var gameOver: Bool = false
-
-    private var gameStartDate: Date = Date()
-    private var gamePauseDuration: TimeInterval = 0
-
-    private var appEnterBackgroundDate: Date?
 
     var movedCount: AnyPublisher<Int, Never> {
         return $undoArr.map { arr -> Int in
@@ -32,27 +28,26 @@ class BallManager {
         }.eraseToAnyPublisher()
     }
 
-    var playDuration: TimeInterval {
-        return Date().timeIntervalSince(gameStartDate) - gamePauseDuration
+    var explodedBallsType: Dictionary<Int, Int> {
+
+        var dict: Dictionary<Int, Int> = [:]
+        undoArr.forEach { moved in
+            moved.justExplodedChains.forEach { chain in
+                let value = dict[chain.ballType] ?? 0
+                dict.updateValue(value + chain.ballCount, forKey: chain.ballType)
+            }
+        }
+        return dict
+
     }
 
     init() {
         NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification , object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: UIApplication.willEnterForegroundNotification , object: nil)
     }
 
     @objc
     func appDidEnterBackground() {
         save()
-        appEnterBackgroundDate = Date()
-    }
-
-    @objc
-    func appWillEnterForeground() {
-        if let date = appEnterBackgroundDate {
-            gamePauseDuration += Date().timeIntervalSince(date)
-            appEnterBackgroundDate = nil
-        }
     }
 
     func beginNewGame() -> Set<Ball> {
@@ -60,8 +55,6 @@ class BallManager {
         resetComboMultiplier()
         score = 0
         explodedBalls = 0
-        gameStartDate = Date()
-        gamePauseDuration = 0
         gameOver = false
         save()
         return createInitialBalls()
@@ -73,8 +66,6 @@ class BallManager {
         if let savedData = load() {
             undoArr = savedData.undos
             balls = savedData.balls
-            gameStartDate = savedData.startDate
-            gamePauseDuration = savedData.pauseDuration
             updateScoreAndExplodeBall(savedUndoData: undoArr)
             var set = Set<Ball>()
             for arr in balls {
@@ -90,8 +81,20 @@ class BallManager {
         return beginNewGame()
     }
 
+    var allBalls: Set<Ball> {
+        var set: Set<Ball> = Set()
+        for i in 0..<Config.NumColumns {
+            for j in 0..<Config.NumRows {
+                if let ball = balls[i][j] {
+                    set.insert(ball)
+                }
+            }
+        }
+        return set
+    }
+
     private func createInitialBalls() -> Set<Ball> {
-        var remain, count, count2: UInt32
+        var remain, count, count2: Int
         var stop: Bool
 
         for i in 0..<Config.NumColumns {
@@ -100,12 +103,12 @@ class BallManager {
             }
         }
 
-        count = UInt32(Config.NumColumns * Config.NumRows)
-        count2 = count - UInt32(Config.InitBallNum)
+        count = Config.NumColumns * Config.NumRows
+        count2 = count - Config.InitBallNum
         var ballType: Int
         var set = Set<Ball>()
         repeat {
-            remain = arc4random_uniform(count) + 1
+            remain = Int.random(in: 1...count)
             count -= 1
             stop = false
             for i in 0..<Config.NumColumns {
@@ -113,7 +116,7 @@ class BallManager {
                     if balls[i][j] == nil {
                         remain -= 1
                         if remain == 0 {
-                            ballType = Int(arc4random_uniform(UInt32(Config.NumBallTypes)) + 1)
+                            ballType = Int.random(in: 1...Config.NumBallTypes)
                             let ball = createBallAt(column: i, row: j, type: ballType)
                             set.insert(ball)
                             stop = true
@@ -152,7 +155,7 @@ class BallManager {
         var tmpSet = Set<Int>()
 
         for _ in 0..<Config.NextBallNum {
-            remain = Int(arc4random_uniform(UInt32(count)) + 1)
+            remain = Int.random(in: 1...count)
             stop = false
             for i in 0..<Config.NumColumns {
                 for j in 0..<Config.NumRows {
@@ -160,7 +163,7 @@ class BallManager {
                         remain -= 1
                         if remain == 0 {
                             repeat {
-                                ballType = -1 * (Int(arc4random_uniform(UInt32(Config.NumBallTypes))) + 1)
+                                ballType = -Int.random(in: 1...Config.NumBallTypes)
                             } while tmpSet.contains(ballType)
                             tmpSet.insert(ballType)
 
@@ -546,7 +549,7 @@ class BallManager {
         var emptyCell = Cell()
         let emptyCount = countEmptyCell()
         if emptyCount != 0 {
-            let tmp = arc4random_uniform(UInt32(emptyCount)) + 1;
+            let tmp = Int.random(in: 1...emptyCount)
             var count = 0;
             var stop = false;
             for i in 0..<Config.NumColumns {
@@ -663,12 +666,10 @@ extension BallManager {
     private struct SaveData: Codable {
         var undos: [UndoMove]
         var balls: [[Ball?]]
-        var startDate: Date
-        var pauseDuration: TimeInterval
     }
 
     func save() {
-        let saveData = SaveData(undos: undoArr, balls: balls, startDate: gameStartDate, pauseDuration: gamePauseDuration)
+        let saveData = SaveData(undos: undoArr, balls: balls)
         do {
             let data = try JSONEncoder().encode(saveData)
             let fileName = try FileManager.saveDataToDocuments(data, fileName: "save.json")
@@ -689,4 +690,13 @@ extension BallManager {
             return nil
         }
     }
+}
+
+
+extension BallManager {
+    var moves: Int {
+        return undoArr.count
+    }
+
+
 }

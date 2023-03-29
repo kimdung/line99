@@ -10,12 +10,11 @@ import GameplayKit
 import Combine
 
 class GameScene: SKScene, ObservableObject {
-    typealias CompletionBlock = (() -> Void)
 
     private let backgroundZPostion: CGFloat = 1
     private let gridZPosition: CGFloat = 2
     private let smallBallZPosition: CGFloat = 98
-    private let tailAnimationZPosition: CGFloat = 99
+
     private let bigBallZPosition: CGFloat = 100
     private let scoreZPosition: CGFloat = 101
 
@@ -39,29 +38,6 @@ class GameScene: SKScene, ObservableObject {
     private let layerPosition = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2 - headerHeight/2)
 
     private var cancellableBag = Set<AnyCancellable>()
-    /*    override init() {
-        let size = CGSize(width: 360, height: 400)
-        super.init(size: size)
-
-        // Đặt center của scene là toạ độ gốc
-        anchorPoint = CGPointMake(0.5, 0.5)
-
-//        let layerPostion = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2)
-
-        setupGridLayer()
-
-        ballsLayer.position = layerPosition
-        addChild(ballsLayer)
-        backgroundColor = .white
-
-    }
-
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    */
-
 
     private var score: Int = 0 {
         didSet {
@@ -79,8 +55,11 @@ class GameScene: SKScene, ObservableObject {
     }
 
     private var scoreLabelNode: SKLabelNode!
-    private var timerLabel: SKLabelNode!
-
+    private var movedLabel: SKLabelNode!
+    private var explodedLabel: SKLabelNode!
+    private var nextBall: SKNode!
+//    private var nextBall1: SKSpriteNode!
+//    private var nextBall2: SKSpriteNode!
 
     func beginGame() {
         removeAllBallSprites()
@@ -88,70 +67,101 @@ class GameScene: SKScene, ObservableObject {
         touchedCell = nil
         let newBalls = ballManager.beginGame()
         addSprites(forBalls: newBalls)
+        showNextBall(balls: newBalls)
     }
 
     func restartGame() {
-        removeAllBallSprites()
-        seletecBall = nil
-        touchedCell = nil
-        let newBalls = ballManager.beginNewGame()
-        addSprites(forBalls: newBalls)
-        updateTimerLabel()
+        let allBalls = ballManager.allBalls
+        Task {
+            await withTaskGroup(of: Void.self) { group in
+                for ball in allBalls {
+                    group.addTask {
+                        await ball.explodeAndRemove()
+                    }
+                }
+            }
+
+            removeAllBallSprites()
+            seletecBall = nil
+            touchedCell = nil
+            let newBalls = ballManager.beginNewGame()
+            addSprites(forBalls: newBalls)
+            showNextBall(balls: newBalls)
+        }
+    }
+
+    private func showNextBall(balls: Set<Ball>?) {
+        guard let balls = balls else {
+            nextBall.removeAllChildren()
+            return
+        }
+        nextBall.removeAllChildren()
+
+        let smallBalls = balls.filter { !$0.isBig }
+
+        for (index, ball) in smallBalls.enumerated() {
+
+            let smallBallSpriteNode = SKSpriteNode(imageNamed: ball.spriteName)
+
+            smallBallSpriteNode.xScale = 0.5
+            smallBallSpriteNode.yScale = 0.5
+            smallBallSpriteNode.position = CGPoint(x: CGFloat(index * 18), y: 0)
+            nextBall.addChild(smallBallSpriteNode)
+        }
+    }
+
+    convenience override init() {
+        self.init(fileNamed: "GameScene")!
+        setupView()
+        setupCombine()
     }
 
     override func didMove(to view: SKView) {
-        setupView()
-//        updateTimer()
+//        beginGame()
+    }
 
-        ballManager.movedCount.sink { count in
+    private func updateMovedCount(movedCnt: Int) {
+        movedLabel.text = "\(movedCnt)"
+    }
+
+    private func updateExplodedCount(explodedCnt: Int) {
+        explodedLabel.text = "\(explodedCnt)"
+    }
+
+    private func setupCombine() {
+        ballManager.movedCount.sink { [weak self] count in
             print("moved \(count)")
+            self?.updateMovedCount(movedCnt: count)
+
         }
         .store(in: &cancellableBag)
 
-        ballManager.$score.sink { value in
-            self.score = value
+        ballManager.$score.sink { [weak self] value in
+            self?.score = value
         }
         .store(in: &cancellableBag)
 
-        ballManager.$explodedBalls.sink { value in
+        ballManager.$explodedBalls.sink { [weak self] value in
             print("exploded balls \(value)")
+            self?.updateExplodedCount(explodedCnt: value)
         }
         .store(in: &cancellableBag)
 
-        ballManager.$gameOver.removeDuplicates().sink { isGameOver in
+        ballManager.$gameOver.removeDuplicates().sink { [weak self] isGameOver in
+            guard let self = self else {
+                return
+            }
             if isGameOver {
-                self.removeAction(forKey: "updateTimer")
-            } else {
-                self.updateTimer()
+                self.showGameOver()
             }
         }
         .store(in: &cancellableBag)
-    }
 
-    func secondsToHoursMinutesSeconds(_ seconds: Int) -> (hours: Int, minutes: Int, seconds: Int) {
-        return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
-    }
 
-    private func updateTimer() {
-        let updateTimerAction = SKAction.run { [weak self] in
-            self?.updateTimerLabel()
-        }
-        let waitAction = SKAction.wait(forDuration: 1)
-        run(SKAction.repeatForever(SKAction.sequence([updateTimerAction, waitAction])), withKey: "updateTimer" )
-    }
-
-    private func updateTimerLabel() {
-        let duration = secondsToHoursMinutesSeconds(Int(ballManager.playDuration))
-
-        var text = String(format: "%02d:%02d", duration.hours, duration.minutes)
-
-        if duration.hours == 0 {
-            text = String(format: "%02d:%02d", duration.minutes, duration.seconds)
-        }
-        timerLabel.text = text
     }
 
     private func setupView() {
+        scaleMode = .aspectFit
         anchorPoint = CGPointMake(0.5, 0.5)
         setupGridLayer()
 
@@ -159,8 +169,9 @@ class GameScene: SKScene, ObservableObject {
         addChild(ballsLayer)
         backgroundColor = .white
         scoreLabelNode = (childNode(withName: "scoreLabel") as! SKLabelNode)
-        timerLabel = (childNode(withName: "timerLabel") as! SKLabelNode)
-
+        nextBall = childNode(withName: "nextBall")
+        movedLabel = (childNode(withName: "movedLabel") as! SKLabelNode)
+        explodedLabel = (childNode(withName: "explodedLabel") as! SKLabelNode)
     }
 
     /// Vẽ lưới 9x9 trên màn hình
@@ -317,8 +328,8 @@ class GameScene: SKScene, ObservableObject {
             var score = 0
             for chain in chains {
                 score += chain.score
-                group.addTask {
-                    await self.animateScore(forChain: chain)
+                group.addTask { [weak self] in
+                    await self?.animateScore(forChain: chain)
                 }
             }
 
@@ -346,21 +357,12 @@ class GameScene: SKScene, ObservableObject {
         let chainCenterPoint = CGPointMake((firstBall.sprite.position.x + lastBall.sprite.position.x) / 2,
                                       (firstBall.sprite.position.y + lastBall.sprite.position.y) / 2)
 
-        let scoreLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold", text: "\(chain.score)", fontSize: 20, textColor: .blue, shadowColor: .lightGray)
+        let scoreLabel = SKLabelNode(fontNamed: "Courier-Bold", text: "\(chain.score)", fontSize: 21, textColor: .blue, shadowColor: .lightGray)
 
         scoreLabel.position = chainCenterPoint
         scoreLabel.zPosition = scoreZPosition
         scoreLabel.verticalAlignmentMode = .center
-//        scoreLabel.addStroke(color: .lightGray, width: 4)
         ballsLayer.addChild(scoreLabel)
-//        scoreLabelNode.text = "\(chain.score)"
-//
-//        let outlinelbl = LFOutlinedLabel(size: CGSize(width: 80, height: 40), font: "Courier-Bold", fSize: 20, fColor: .yellow, bSize: 2, bColor: .black, bOpacity: 0.8)
-//
-//        outlinelbl.text = "Test"
-//        outlinelbl.update()
-//        outlinelbl.position = centerPoint
-//        ballsLayer.addChild(outlinelbl)
 
         let moveUpAction = SKAction.move(by: CGVector(dx: 0, dy: 0), duration: 0.75)
         let scaleAction = SKAction.scale(to: 1.2, duration: 0.75)
@@ -369,12 +371,8 @@ class GameScene: SKScene, ObservableObject {
         let groupActions = SKAction.group([moveUpAction, scaleAction, waitAndfadeOutAction])
         groupActions.timingMode = .easeIn
 
-
         let action = SKAction.sequence([groupActions, SKAction.removeFromParent()])
         await scoreLabel.run(action)
-//        scoreLabel.run(SKAction.sequence([SKAction.group([action, SKAction.fadeOut(withDuration: 0.8)])
-//                                          SKAction.removeFromParent()
-//                                         ]))
 
     }
 
@@ -398,6 +396,9 @@ class GameScene: SKScene, ObservableObject {
             await sprite.run(action)
         }
 
+        let dict = ballManager.explodedBallsType
+        print("sum \(dict.values.reduce(0, +))")
+
     }
 
     private func beginNextTurn() async {
@@ -407,8 +408,11 @@ class GameScene: SKScene, ObservableObject {
         let matchedBalls = ballManager.findMatchChains(balls: bigBalls)
         if matchedBalls.isEmpty {
             let smallBalls = ballManager.addNextSmallBalls()
+            showNextBall(balls: smallBalls)
             await animateAddSmallBalls(smallBalls)
+
         } else {
+            showNextBall(balls: nil)
             await animateMatched(chains: matchedBalls)
             ballManager.removeMatcheBalls(chains: matchedBalls)
         }
@@ -510,11 +514,79 @@ extension GameScene {
         } else if let seletecBall = seletecBall {
             tryMoveBall(seletecBall, toCell: cell)
         }
+        //        test()
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         touchesEnded(touches, with: event)
     }
+
+}
+
+// MARK: - Gameover
+extension GameScene {
+    private func showGameOver() {
+
+
+        let textures = bluredScreenshotTextures()
+//        let bgNode = SKSpriteNode(texture: textures.first)
+//        bgNode.zPosition = 9999
+//        addChild(bgNode)
+//        let blurAction = SKAction.animate(with: textures, timePerFrame: 0.05)
+//        let removeAction = SKAction.removeFromParent()
+//        bgNode.run(SKAction.sequence([blurAction]))
+        let gameOver = GameOver(gameScene: self, backgroundTextures: textures)
+        gameOver.scaleMode = .aspectFit
+        view?.presentScene(gameOver)
+
+
+//        let gameOver = GameOver()
+//        gameOver.parrentScene = self
+//        gameOver.scaleMode = .aspectFit
+//        let transition = SKTransition.fade(with: .white, duration: 0.5)
+//        view?.presentScene(gameOver, transition: transition)
+
+
+//        let filter = CIFilter(name: "CIGaussianBlur")
+//        filter?.setValue(3, forKey: kCIInputRadiusKey)
+//        self.filter = filter
+//        self.shouldEnableEffects = true
+//        self.shouldRasterize = false
+
+//        addChild(gameOver)
+//
+//        let duration = 1.0
+//
+//           let pauseBG:SKSpriteNode = self.getBluredScreenshot()
+//
+//           pauseBG.alpha = 0
+//           pauseBG.zPosition = 1000 + self.zPosition + 1
+//           pauseBG.run(SKAction.fadeAlpha(to: 1, duration: duration))
+//
+//           self.addChild(pauseBG)
+//        let pauseBg = getBluredScreenshot()
+//        addChild(pauseBg)
+    }
+
+    private func bluredScreenshotTextures() -> [SKTexture] {
+        guard let filter = CIFilter(name: "CIGaussianBlur") else {
+            return []
+        }
+
+        var textures: [SKTexture] = []
+        self.shouldEnableEffects = true
+
+        for i in 1...10 {
+            filter.setValue(i, forKey: kCIInputRadiusKey)
+            self.filter = filter
+            let texture = view?.texture(from: self)
+            textures.append(texture!)
+        }
+//        filter.setValue(0, forKey: kCIInputRadiusKey)
+        self.filter = nil
+        return textures
+    }
+
 
 }
 
@@ -566,6 +638,8 @@ extension GameScene {
 
                 ballManager.undo()
             }
+
+            showNextBall(balls: ballManager.allBalls)
             isBusy = false
         }
 
@@ -654,3 +728,50 @@ extension GameScene {
         }
     }
 }
+
+//
+//
+//class BlurCropNode: SKCropNode {
+//    var blurNode: BlurNode
+//    var size: CGSize
+//    init(size: CGSize) {
+//        self.size = size
+//        blurNode = BlurNode(radius: 10)
+//        super.init()
+//        addChild(blurNode)
+//        let mask = SKSpriteNode (color: UIColor.black, size: size)
+//        mask.anchorPoint = CGPoint.zero
+//        maskNode = mask
+//    }
+//
+//    required init?(coder aDecoder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented")
+//    }
+//}
+//
+//class BlurNode: SKEffectNode {
+//    var sprite: SKSpriteNode
+//    var texture: SKTexture {
+//        get { return sprite.texture! }
+//        set {
+//            sprite.texture = newValue
+//            let scale = UIScreen.main.scale
+//            let textureSize = newValue.size()
+//            sprite.size = CGSizeMake(textureSize.width/scale, textureSize.height/scale)
+//        }
+//    }
+//
+//    init(radius: CGFloat) {
+//        sprite = SKSpriteNode()
+//        super.init()
+//        sprite.anchorPoint = CGPointMake(0, 0)
+//        addChild(sprite)
+//        filter = CIFilter(name: "CIGaussianBlur", parameters: ["inputRadius": radius])
+//        shouldEnableEffects = true
+//        shouldRasterize = true
+//    }
+//
+//    required init?(coder aDecoder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented")
+//    }
+//}
