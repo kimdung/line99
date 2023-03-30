@@ -14,7 +14,7 @@ class BallManager {
     private var balls = [[Ball?]](repeating: [Ball?](repeating: nil, count: Config.NumRows),
                                   count: Config.NumColumns)
 
-    private var comboMultiplier = 1
+    @Published private(set) var comboMultiplier = 1
 
     @Published private var undoArr = [UndoMove]()
     @Published private(set) var score = 0
@@ -298,10 +298,20 @@ class BallManager {
         var chains = Set<Chain>()
         for ball in balls {
             let chain = findMatcheChains(ball: ball)
-            if !chain.isEmpty {
-                chains.inserts(chain)
+            chains.inserts(chain)
+        }
+
+        if undoArr.count >= 2 {
+            let lastUndo = undoArr[undoArr.count - 2]
+            if lastUndo.justExplodedChains.isEmpty {
+                comboMultiplier = 1
+            } else {
+                comboMultiplier += chains.count
             }
         }
+
+        calculateScore(chains: chains)
+
         updateScoreAndExplodeBall(matchedChains: chains)
         return chains
     }
@@ -417,13 +427,6 @@ class BallManager {
                 set.insert(chain)
             }
         }
-        if set.count > 0 {
-            calculateScore(chains: set)
-            return set
-        } else {
-            resetComboMultiplier()
-        }
-
         return set
     }
 
@@ -443,7 +446,6 @@ class BallManager {
         for chain in chains {
             chain.score = (5 * chain.balls.count * comboMultiplier) +  bonusPoint(ballCount: chain.balls.count) * comboMultiplier
             chain.score *= Int(UInt(chains.count));
-            comboMultiplier *= 2;
         }
     }
 
@@ -591,6 +593,7 @@ extension BallManager {
         guard let lastUndo = undoArr.last else {
             return
         }
+        comboMultiplier = 1
         undoArr.removeLast()
         print("======")
         updateScoreAndExplodeBall(explodedChains: lastUndo.justExplodedChains)

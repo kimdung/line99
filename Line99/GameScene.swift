@@ -41,14 +41,17 @@ class GameScene: SKScene, ObservableObject {
 
     private var score: Int = 0 {
         didSet {
+            if oldValue == score {
+                return
+            }
             scoreLabelNode.text = "\(score)"
 
             let x = frame.maxX - scoreLabelNode.frame.size.width / 2 - 5
             let moveAction = SKAction.moveTo(x: x, duration: 0)
 
-            let scaleUpAction = SKAction.scale(by:  oldValue < score ? 1.2 : 0.8, duration: 0.25)
-            let scaleDownAction = scaleUpAction.reversed()
-            let action = SKAction.sequence([moveAction, scaleUpAction, scaleDownAction])
+            let scaleAction = SKAction.scale(by:  oldValue < score ? 1.2 : 0.8, duration: 0.25)
+            let scaleReversedAction = scaleAction.reversed()
+            let action = SKAction.sequence([moveAction, scaleAction, scaleReversedAction])
             action.timingMode = .easeInEaseOut
             scoreLabelNode.run(action)
         }
@@ -58,8 +61,6 @@ class GameScene: SKScene, ObservableObject {
     private var movedLabel: SKLabelNode!
     private var explodedLabel: SKLabelNode!
     private var nextBall: SKNode!
-//    private var nextBall1: SKSpriteNode!
-//    private var nextBall2: SKSpriteNode!
 
     func beginGame() {
         removeAllBallSprites()
@@ -148,16 +149,16 @@ class GameScene: SKScene, ObservableObject {
         .store(in: &cancellableBag)
 
         ballManager.$gameOver.removeDuplicates().sink { [weak self] isGameOver in
-            guard let self = self else {
-                return
-            }
             if isGameOver {
-                self.showGameOver()
+                self?.showGameOver()
             }
         }
         .store(in: &cancellableBag)
 
-
+        ballManager.$comboMultiplier.removeDuplicates().sink { value in
+            print("combo \(value)")
+        }
+        .store(in: &cancellableBag)
     }
 
     private func setupView() {
@@ -249,6 +250,30 @@ class GameScene: SKScene, ObservableObject {
                 ball.sprite.run(action)
             }
         }
+    }
+
+    private func showCombo(combo: Int) {
+        if combo == 1 {
+            return
+        }
+        let comboLabel = SKLabelNode(fontNamed: "Courier-Bold", text: "COMBO x \(combo)", fontSize: 30, textColor: .blue, shadowColor: .lightGray)
+
+
+        comboLabel.zPosition = scoreZPosition
+        comboLabel.verticalAlignmentMode = .center
+        comboLabel.horizontalAlignmentMode = .center
+
+        addChild(comboLabel)
+
+        let moveUpAction = SKAction.move(by: CGVector(dx: 0, dy: 0), duration: 0.75)
+        let scaleAction = SKAction.scale(to: 1.2, duration: 0.75)
+        let waitAndfadeOutAction = SKAction.sequence([SKAction.wait(forDuration: 0.35), SKAction.fadeOut(withDuration: 0.4)])
+
+        let groupActions = SKAction.group([moveUpAction, scaleAction, waitAndfadeOutAction])
+        groupActions.timingMode = .easeIn
+
+        let action = SKAction.sequence([groupActions, SKAction.removeFromParent()])
+        comboLabel.run(action)
     }
 
 
@@ -608,8 +633,6 @@ extension GameScene {
 
         isBusy = true
 
-
-        ballManager.resetComboMultiplier()
         Task {
             if lastUndo.justExplodedChains.count != 0 {
                 var score = 0

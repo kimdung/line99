@@ -19,7 +19,6 @@
 		CE6E57A527313F9B005AC466 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE6E57A327313F9B005AC466 /* LaunchScreen.storyboard */; };
 		CE6E57C827314078005AC466 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E57C727314078005AC466 /* Matrix.swift */; };
 		CE7CF1312738DD8A00B4B5A4 /* UIImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */; };
-		CEA84FFC29D2AAD30059A7EF /* ExplodedBalls.sks in Resources */ = {isa = PBXBuildFile; fileRef = CEA84FFB29D2AAD30059A7EF /* ExplodedBalls.sks */; };
 		CEAF9CD629A7581E007F0503 /* move.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD129A7581E007F0503 /* move.wav */; };
 		CEAF9CD729A7581E007F0503 /* jump.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD229A7581E007F0503 /* jump.wav */; };
 		CEAF9CD829A7581E007F0503 /* destroy.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD329A7581E007F0503 /* destroy.wav */; };
@@ -63,7 +62,6 @@
 		CE6E57A427313F9B005AC466 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CE6E57C727314078005AC466 /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
 		CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Extension.swift"; sourceTree = "<group>"; };
-		CEA84FFB29D2AAD30059A7EF /* ExplodedBalls.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = ExplodedBalls.sks; sourceTree = "<group>"; };
 		CEAF9CBC29A75622007F0503 /* Line99-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Line99-Bridging-Header.h"; sourceTree = "<group>"; };
 		CEAF9CBD29A75623007F0503 /* LNBall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNBall.h; sourceTree = "<group>"; };
 		CEAF9CBE29A75623007F0503 /* LNBall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNBall.m; sourceTree = "<group>"; };
@@ -138,7 +136,6 @@
 				CE6E579427313F98005AC466 /* AppDelegate.swift */,
 				CE6E579A27313F98005AC466 /* GameScene.swift */,
 				CECEF9EE29BEC4B300AF5DB2 /* GameScene.sks */,
-				CEA84FFB29D2AAD30059A7EF /* ExplodedBalls.sks */,
 				CECEF9F229C456E100AF5DB2 /* GameOver.sks */,
 				CECEF9F429C45B2700AF5DB2 /* GameOver.swift */,
 				CE6E579C27313F98005AC466 /* GameViewController.swift */,
@@ -293,7 +290,6 @@
 				CEAF9CD929A7581E007F0503 /* Drip.wav in Resources */,
 				CEAF9CD729A7581E007F0503 /* jump.wav in Resources */,
 				CED678DE29B2ED0E007A4140 /* Fire.sks in Resources */,
-				CEA84FFC29D2AAD30059A7EF /* ExplodedBalls.sks in Resources */,
 				CEAF9D8129A75878007F0503 /* balls-hd.plist in Resources */,
 				CEAF9CD629A7581E007F0503 /* move.wav in Resources */,
 				CECEF9F329C456E100AF5DB2 /* GameOver.sks in Resources */,
