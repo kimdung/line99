@@ -11,9 +11,9 @@ import UIKit
 
 class BallManager {
 
-    private var balls = [[Ball?]](repeating: [Ball?](repeating: nil, count: Config.NumRows),
-                                  count: Config.NumColumns)
-
+//    private var balls = [[Ball?]](repeating: [Ball?](repeating: nil, count: Config.NumRows),
+//                                  count: Config.NumColumns)
+    private var balls = Array2D<Ball>(columns: Config.NumColumns, rows: Config.NumRows)
     @Published private(set) var comboMultiplier = 1
 
     @Published private var undoArr = [UndoMove]()
@@ -68,13 +68,20 @@ class BallManager {
             balls = savedData.balls
             updateScoreAndExplodeBall(savedUndoData: undoArr)
             var set = Set<Ball>()
-            for arr in balls {
-                for ball in arr {
-                    if let ball = ball {
+            for i in 0..<Config.NumColumns {
+                for j in 0..<Config.NumRows {
+                    if let ball = balls[i, j] {
                         set.insert(ball)
                     }
                 }
             }
+//            for arr in balls {
+//                for ball in arr {
+//                    if let ball = ball {
+//                        set.insert(ball)
+//                    }
+//                }
+//            }
             return set
         }
 
@@ -85,7 +92,7 @@ class BallManager {
         var set: Set<Ball> = Set()
         for i in 0..<Config.NumColumns {
             for j in 0..<Config.NumRows {
-                if let ball = balls[i][j] {
+                if let ball = balls[i, j] {
                     set.insert(ball)
                 }
             }
@@ -99,7 +106,7 @@ class BallManager {
 
         for i in 0..<Config.NumColumns {
             for j in 0..<Config.NumRows {
-                balls[i][j] = nil
+                balls[i, j] = nil
             }
         }
 
@@ -113,7 +120,7 @@ class BallManager {
             stop = false
             for i in 0..<Config.NumColumns {
                 for j in 0..<Config.NumRows {
-                    if balls[i][j] == nil {
+                    if balls[i, j] == nil {
                         remain -= 1
                         if remain == 0 {
                             ballType = Int.random(in: 1...Config.NumBallTypes)
@@ -159,7 +166,7 @@ class BallManager {
             stop = false
             for i in 0..<Config.NumColumns {
                 for j in 0..<Config.NumRows {
-                    if balls[i][j] == nil {
+                    if balls[i, j] == nil {
                         remain -= 1
                         if remain == 0 {
                             repeat {
@@ -200,7 +207,7 @@ class BallManager {
         var set = Set<Ball>()
         for i in 0..<Config.NumColumns {
             for j in 0..<Config.NumRows {
-                if let ball = balls[i][j], ball.ballType < 0 {
+                if let ball = balls[i, j], ball.ballType < 0 {
                     ball.ballType = -ball.ballType
                     set.insert(ball)
 
@@ -223,7 +230,7 @@ class BallManager {
         var count = 0
         for i in 0..<Config.NumColumns {
             for j in 0..<Config.NumRows {
-                if balls[i][j] == nil {
+                if balls[i, j] == nil {
                     count += 1
                 }
             }
@@ -234,12 +241,12 @@ class BallManager {
     private func createBallAt(column: Int, row: Int, type: Int) -> Ball {
         let ball = Ball(type: type, column: column, row: row)
 
-        balls[column][row] = ball
+        balls[column, row] = ball
         return ball
     }
 
     func ballAt(cell: Cell) -> Ball? {
-        return balls[cell.column][cell.row]
+        return balls[cell.column, cell.row]
     }
 
     func performMove(move: Move) {
@@ -268,14 +275,14 @@ class BallManager {
     }
 
     private func performMove(ball: Ball, toCell: Cell) {
-        balls[ball.column][ball.row] = nil
-        balls[toCell.column][toCell.row] = ball
+        balls[ball.column, ball.row] = nil
+        balls[toCell.column, toCell.row] = ball
         ball.column = toCell.column
         ball.row = toCell.row
     }
 
     private func temporaryRemove(smallBall: Ball) {
-        balls[smallBall.column][smallBall.row] = nil
+        balls[smallBall.column, smallBall.row] = nil
         smallBall.column = NSNotFound
         smallBall.row = NSNotFound
     }
@@ -284,9 +291,9 @@ class BallManager {
         if let emptyCell = emptyCell {
             smallBall.column = emptyCell.column;
             smallBall.row = emptyCell.row;
-            balls[emptyCell.column][emptyCell.row] = smallBall;
+            balls[emptyCell.column, emptyCell.row] = smallBall;
         } else {
-            balls[smallBall.column][smallBall.row] = nil;
+            balls[smallBall.column, smallBall.row] = nil;
         }
     }
 
@@ -384,7 +391,7 @@ class BallManager {
                 if !isInside(column: i, row: j) {
                     break
                 }
-                let ball = balls[i][j]
+                let ball = balls[i, j]
                 if ball == nil || ball!.ballType != centerBall.ballType {
                     break
                 }
@@ -399,7 +406,7 @@ class BallManager {
                 if !isInside(column: i, row: j) {
                     break
                 }
-                let ball = balls[i][j]
+                let ball = balls[i, j]
                 if ball == nil || ball!.ballType != centerBall.ballType {
                     break
                 }
@@ -421,7 +428,7 @@ class BallManager {
                 while k > 0 {
                     i += u[t]
                     j += v[t]
-                    chain.addBall(balls[i][j])
+                    chain.addBall(balls[i, j])
                     k -= 1
                 }
                 set.insert(chain)
@@ -433,7 +440,7 @@ class BallManager {
     func removeMatcheBalls(chains: Set<Chain>) {
         for chain in chains {
             for ball in chain.balls {
-                balls[ball.column][ball.row] = nil
+                balls[ball.column, ball.row] = nil
             }
         }
         if let lastUndo = undoArr.last {
@@ -535,7 +542,7 @@ class BallManager {
                     continue;
                 }
 
-                if (dadi[xx][yy] == -1 && balls[xx][yy]?.ballType ?? 0 <= 0) {
+                if (dadi[xx][yy] == -1 && balls[xx, yy]?.ballType ?? 0 <= 0) {
                     last += 1
                     queuei[last] = xx;
                     queuej[last] = yy;
@@ -556,7 +563,7 @@ class BallManager {
             var stop = false;
             for i in 0..<Config.NumColumns {
                 for j in 0..<Config.NumRows {
-                    let ball = balls[i][j]
+                    let ball = balls[i, j]
                     if (ball == nil) {
                         count += 1
                         if (count == tmp) {
@@ -606,7 +613,7 @@ extension BallManager {
 
     private func removeSmallBalls(_ cells: Set<Cell>){
         for cell in cells {
-            balls[cell.column][cell.row] = nil
+            balls[cell.column, cell.row] = nil
             print("remove small ball \(cell.column),\(cell.row)")
         }
     }
@@ -623,15 +630,15 @@ extension BallManager {
         if let smallBallCell = move.smallBallCell, let smallBall = ballAt(cell: smallBallCell) {
             smallBall.column = endCell.column
             smallBall.row = endCell.row
-            balls[smallBallCell.column][smallBallCell.row] = nil
-            balls[endCell.column][endCell.row] = smallBall
+            balls[smallBallCell.column, smallBallCell.row] = nil
+            balls[endCell.column, endCell.row] = smallBall
         } else {
-            balls[endCell.column][endCell.row] = nil
+            balls[endCell.column, endCell.row] = nil
         }
 
         ball.column = beginCell.column
         ball.row = beginCell.row
-        balls[beginCell.column][beginCell.row] = ball
+        balls[beginCell.column, beginCell.row] = ball
     }
 
     /// Khởi tạo lại ball trong chain và đưa vào danh sách quản lý.
@@ -645,7 +652,7 @@ extension BallManager {
             }
         }
         for ball in set {
-            balls[ball.column][ball.row] = ball
+            balls[ball.column, ball.row] = ball
         }
         return set
     }
@@ -668,7 +675,7 @@ extension BallManager {
 
     private struct SaveData: Codable {
         var undos: [UndoMove]
-        var balls: [[Ball?]]
+        var balls: Array2D<Ball>
     }
 
     func save() {
@@ -687,7 +694,12 @@ extension BallManager {
         do {
             let data = try FileManager.readDataFromFile(fileName: "save.json")
             let savedData: SaveData = try JSONDecoder().decode(SaveData.self, from: data)
-            return savedData
+            let balls = savedData.balls
+            if balls.columns != Config.NumColumns || balls.rows != Config.NumRows {
+                return nil
+            } else {
+                return savedData
+            }
         } catch {
             print("Load data error \(error)")
             return nil

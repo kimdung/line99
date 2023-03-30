@@ -34,7 +34,7 @@ class GameScene: SKScene, ObservableObject {
 
     private var touchedCell: Cell? = nil
 
-    private static let headerHeight = 60.0
+    private static let headerHeight = 80.0
     private let layerPosition = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2 - headerHeight/2)
 
     private var cancellableBag = Set<AnyCancellable>()

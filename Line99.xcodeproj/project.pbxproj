@@ -19,6 +19,7 @@
 		CE6E57A527313F9B005AC466 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE6E57A327313F9B005AC466 /* LaunchScreen.storyboard */; };
 		CE6E57C827314078005AC466 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6E57C727314078005AC466 /* Matrix.swift */; };
 		CE7CF1312738DD8A00B4B5A4 /* UIImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */; };
+		CEA84FFE29D595C50059A7EF /* Array2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA84FFD29D595C50059A7EF /* Array2D.swift */; };
 		CEAF9CD629A7581E007F0503 /* move.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD129A7581E007F0503 /* move.wav */; };
 		CEAF9CD729A7581E007F0503 /* jump.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD229A7581E007F0503 /* jump.wav */; };
 		CEAF9CD829A7581E007F0503 /* destroy.wav in Resources */ = {isa = PBXBuildFile; fileRef = CEAF9CD329A7581E007F0503 /* destroy.wav */; };
@@ -62,6 +63,7 @@
 		CE6E57A427313F9B005AC466 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CE6E57C727314078005AC466 /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
 		CE7CF1302738DD8A00B4B5A4 /* UIImage+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Extension.swift"; sourceTree = "<group>"; };
+		CEA84FFD29D595C50059A7EF /* Array2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array2D.swift; sourceTree = "<group>"; };
 		CEAF9CBC29A75622007F0503 /* Line99-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Line99-Bridging-Header.h"; sourceTree = "<group>"; };
 		CEAF9CBD29A75623007F0503 /* LNBall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LNBall.h; sourceTree = "<group>"; };
 		CEAF9CBE29A75623007F0503 /* LNBall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LNBall.m; sourceTree = "<group>"; };
@@ -144,6 +146,7 @@
 				CE6E57C727314078005AC466 /* Matrix.swift */,
 				CED678E829B5A33A007A4140 /* Ball.swift */,
 				CED678EA29B6C77D007A4140 /* BallManager.swift */,
+				CEA84FFD29D595C50059A7EF /* Array2D.swift */,
 				CED678ED29B6E375007A4140 /* Move.swift */,
 				CED678EF29B71914007A4140 /* Chain.swift */,
 				CED678F229B71C6F007A4140 /* Config.swift */,
@@ -322,6 +325,7 @@
 				CE6E579D27313F98005AC466 /* GameViewController.swift in Sources */,
 				CE6E579527313F98005AC466 /* AppDelegate.swift in Sources */,
 				CED678F029B71914007A4140 /* Chain.swift in Sources */,
+				CEA84FFE29D595C50059A7EF /* Array2D.swift in Sources */,
 				CED678EC29B6DE06007A4140 /* BallManager.swift in Sources */,
 				CE3167F029BB250000C29260 /* OutlineLabelNode.swift in Sources */,
 			);

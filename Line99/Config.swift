@@ -9,8 +9,8 @@ import Foundation
 
 struct Config {
     static let NumBallTypes = 7
-    static let NumColumns = 5
-    static let NumRows = 5
+    static let NumColumns = 9
+    static let NumRows = 9
     static let InitBallNum = 5
     static let NextBallNum = 3
     static let EatBallLineNum = 3
