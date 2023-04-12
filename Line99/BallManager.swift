@@ -11,8 +11,6 @@ import UIKit
 
 class BallManager {
 
-//    private var balls = [[Ball?]](repeating: [Ball?](repeating: nil, count: Config.NumRows),
-//                                  count: Config.NumColumns)
     private var balls = Array2D<Ball>(columns: Config.NumColumns, rows: Config.NumRows)
     @Published private(set) var comboMultiplier = 1
 
@@ -56,7 +54,6 @@ class BallManager {
         score = 0
         explodedBalls = 0
         gameOver = false
-        save()
         return createInitialBalls()
     }
 
@@ -75,13 +72,6 @@ class BallManager {
                     }
                 }
             }
-//            for arr in balls {
-//                for ball in arr {
-//                    if let ball = ball {
-//                        set.insert(ball)
-//                    }
-//                }
-//            }
             return set
         }
 
@@ -486,8 +476,11 @@ class BallManager {
         let i2 = toCell.column
         let j2 = toCell.row
 
-        var dadi = [[Int]](repeating: [Int](repeating: 0, count: Config.NumRows), count: Config.NumColumns)
-        var dadj = [[Int]](repeating: [Int](repeating: 0, count: Config.NumRows), count: Config.NumColumns)
+//        var dadi = [[Int]](repeating: [Int](repeating: 0, count: Config.NumRows), count: Config.NumColumns)
+//        var dadj = [[Int]](repeating: [Int](repeating: 0, count: Config.NumRows), count: Config.NumColumns)
+
+        var dadi = Array2D<Int>(columns: Config.NumColumns, rows: Config.NumRows, value: 0)
+        var dadj = Array2D<Int>(columns: Config.NumColumns, rows: Config.NumRows, value: 0)
 
         var queuei = [Int](repeating: 0, count: Config.NumColumns * Config.NumRows)
         var queuej = [Int](repeating: 0, count: Config.NumColumns * Config.NumRows)
@@ -503,13 +496,15 @@ class BallManager {
 
         for x in 0..<Config.NumColumns {
             for y in 0..<Config.NumRows {
-                dadi[x][y] = -1
+//                dadi[x][y] = -1
+                dadi[x, y] = -1
             }
         }
 
         queuei[0] = i2;
         queuej[0] = j2;
-        dadi[i2][j2] = -2;
+//        dadi[i2][j2] = -2;
+        dadi[i2, j2] = -2
 
         while first <= last {
             x = queuei[first]
@@ -517,22 +512,27 @@ class BallManager {
             first += 1
 
             for kkkk in 0..<4 {
-                xx = x + u[kkkk];
-                yy = y + v[kkkk];
+                xx = x + u[kkkk]
+                yy = y + v[kkkk]
                 if (xx == i1 && yy == j1) {
-                    dadi[i1][j1] = x;
-                    dadj[i1][j1] = y;
+//                    dadi[i1][j1] = x;
+//                    dadj[i1][j1] = y;
+                    dadi[i1, j1] = x
+                    dadj[i1, j1] = y
+
 
                     i = 0;
                     while (true) {
                         cells.append(Cell(column: i1, row: j1))
                         i += 1;
                         k = i1;
-                        i1 = dadi[i1][j1];
+//                        i1 = dadi[i1][j1];
+                        i1 = dadi[i1, j1]!
                         if (i1 == -2) {
                             break
                         }
-                        j1 = dadj[k][j1];
+//                        j1 = dadj[k][j1];
+                        j1 = dadj[k, j1]!
                     }
 
                     return cells;
@@ -542,12 +542,14 @@ class BallManager {
                     continue;
                 }
 
-                if (dadi[xx][yy] == -1 && balls[xx, yy]?.ballType ?? 0 <= 0) {
+                if (dadi[xx, yy] == -1 && balls[xx, yy]?.ballType ?? 0 <= 0) {
                     last += 1
                     queuei[last] = xx;
                     queuej[last] = yy;
-                    dadi[xx][yy] = x;
-                    dadj[xx][yy] = y;
+//                    dadi[xx][yy] = x;
+//                    dadj[xx][yy] = y;
+                    dadi[xx, yy] = x
+                    dadj[xx, yy] = y
                 }
             }
         }

@@ -35,7 +35,7 @@ class GameScene: SKScene, ObservableObject {
     private var touchedCell: Cell? = nil
 
     private static let headerHeight = 80.0
-    private let layerPosition = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2 - headerHeight/2)
+    private let bottomLeftPosition = CGPointMake(-Cell.width * Double(Config.NumColumns) / 2, -Cell.height * Double(Config.NumRows) / 2)
 
     private var cancellableBag = Set<AnyCancellable>()
 
@@ -44,23 +44,17 @@ class GameScene: SKScene, ObservableObject {
             if oldValue == score {
                 return
             }
-            scoreLabelNode.text = "\(score)"
 
-            let x = frame.maxX - scoreLabelNode.frame.size.width / 2 - 5
-            let moveAction = SKAction.moveTo(x: x, duration: 0)
+            scoreLabelNode.score = score
 
-            let scaleAction = SKAction.scale(by:  oldValue < score ? 1.2 : 0.8, duration: 0.25)
-            let scaleReversedAction = scaleAction.reversed()
-            let action = SKAction.sequence([moveAction, scaleAction, scaleReversedAction])
-            action.timingMode = .easeInEaseOut
-            scoreLabelNode.run(action)
         }
     }
 
-    private var scoreLabelNode: SKLabelNode!
+    private var scoreLabelNode: AnimatedScoreLabel!//SKLabelNode!
     private var movedLabel: SKLabelNode!
     private var explodedLabel: SKLabelNode!
     private var nextBall: SKNode!
+    private var gameLayer: SKSpriteNode!
 
     func beginGame() {
         removeAllBallSprites()
@@ -88,6 +82,7 @@ class GameScene: SKScene, ObservableObject {
             let newBalls = ballManager.beginNewGame()
             addSprites(forBalls: newBalls)
             showNextBall(balls: newBalls)
+            save()
         }
     }
 
@@ -163,34 +158,45 @@ class GameScene: SKScene, ObservableObject {
 
     private func setupView() {
         scaleMode = .aspectFit
-        anchorPoint = CGPointMake(0.5, 0.5)
+//        anchorPoint = CGPointMake(0.5, 0.5)
+
+        gameLayer = (childNode(withName: "gameLayer") as! SKSpriteNode)
+        gameLayer.color = UIColor.liClearWhiteColor()
+//        centerNode.position = layerPosition
         setupGridLayer()
 
-        ballsLayer.position = layerPosition
-        addChild(ballsLayer)
+        ballsLayer.position = bottomLeftPosition
+        gameLayer.addChild(ballsLayer)
         backgroundColor = .white
-        scoreLabelNode = (childNode(withName: "scoreLabel") as! SKLabelNode)
+        scoreLabelNode = (childNode(withName: "scoreLabel") as! AnimatedScoreLabel)
+        scoreLabelNode.fontName = "Courier-Bold"
+        scoreLabelNode.fontSize = 23
+        scoreLabelNode.fontColor = UIColor(hex: "#007AFF")
         nextBall = childNode(withName: "nextBall")
         movedLabel = (childNode(withName: "movedLabel") as! SKLabelNode)
         explodedLabel = (childNode(withName: "explodedLabel") as! SKLabelNode)
+
     }
 
     /// Vẽ lưới 9x9 trên màn hình
     private func setupGridLayer() {
         let gridLayer = SKNode()
-        gridLayer.position = layerPosition
+        gridLayer.position = bottomLeftPosition
         gridLayer.zPosition = gridZPosition
-        addChild(gridLayer)
-
+        gameLayer.addChild(gridLayer)
+        let lineColor = UIColor.liLightGreyColor()
         for col in 0...Config.NumColumns {
             let verticalLine = SKShapeNode()
             verticalLine.zPosition = gridZPosition
             let pathToDraw = CGMutablePath()
             pathToDraw.move(to: CGPoint(x: col * Int(Cell.width), y: 0))
             pathToDraw.addLine(to:CGPoint(x: col * Int(Cell.width), y: Config.NumRows * Int(Cell.height)))
+            pathToDraw.closeSubpath()
             verticalLine.path = pathToDraw
-            verticalLine.strokeColor = SKColor.lightGray
+            verticalLine.strokeColor = lineColor
             verticalLine.lineWidth = 1
+//            verticalLine.strokeTexture = testTexture
+//            verticalLine.isAntialiased = false
             gridLayer.addChild(verticalLine)
         }
 
@@ -200,8 +206,9 @@ class GameScene: SKScene, ObservableObject {
             let pathToDraw = CGMutablePath()
             pathToDraw.move(to: CGPoint(x: 0, y: row * Int(Cell.height) ))
             pathToDraw.addLine(to:CGPoint(x: Config.NumColumns * Int(Cell.width), y: row * Int(Cell.height)))
+            pathToDraw.closeSubpath()
             horizontalLine.path = pathToDraw
-            horizontalLine.strokeColor = SKColor.lightGray
+            horizontalLine.strokeColor = lineColor
             horizontalLine.lineWidth = 1
             gridLayer.addChild(horizontalLine)
         }

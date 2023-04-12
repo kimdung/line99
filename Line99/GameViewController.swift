@@ -11,7 +11,7 @@ import GameplayKit
 
 class GameViewController: UIViewController {
 
-    @IBOutlet weak var gridView: UIView!
+    @IBOutlet weak var gridView: SKView!
     private let scene = GameScene()
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,7 +20,7 @@ class GameViewController: UIViewController {
 //            print("ok")
 //        }
 
-        if let view = self.gridView as! SKView? {
+        if let view = self.gridView  {
 //            let scene = SKScene(fileNamed: "GameScene")!
             view.showsFPS = true
             view.showsNodeCount = true
