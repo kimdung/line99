@@ -9,14 +9,22 @@ import SpriteKit
 import GameplayKit
 import Combine
 
+enum Layer: CGFloat {
+    case background
+    case grid
+    case smallBall
+    case bigBall
+    case score
+}
+
 class GameScene: SKScene, ObservableObject {
 
-    private let backgroundZPostion: CGFloat = 1
-    private let gridZPosition: CGFloat = 2
-    private let smallBallZPosition: CGFloat = 98
-
-    private let bigBallZPosition: CGFloat = 100
-    private let scoreZPosition: CGFloat = 101
+//    private let backgroundZPostion: CGFloat = 1
+//    private let gridZPosition: CGFloat = 2
+//    private let smallBallZPosition: CGFloat = 98
+//
+//    private let bigBallZPosition: CGFloat = 100
+//    private let scoreZPosition: CGFloat = 101
 
     private var ballManager: BallManager = BallManager()
     var soundOn: Bool = false
@@ -46,6 +54,11 @@ class GameScene: SKScene, ObservableObject {
             }
 
             scoreLabelNode.score = score
+            bestLabel.text = "\(score)"
+            print(bestLabel.frame.size)
+            let range = SKRange(constantValue: bestLabel.frame.width + 5)
+            let constraits = SKConstraint.distance(range, to: CGPoint(x: 0, y: 0.5), in: bestLabel)
+            bestTitle.constraints = [constraits]
 
         }
     }
@@ -55,6 +68,8 @@ class GameScene: SKScene, ObservableObject {
     private var explodedLabel: SKLabelNode!
     private var nextBall: SKNode!
     private var gameLayer: SKSpriteNode!
+    private var bestTitle: SKNode!
+    private var bestLabel: SKLabelNode!
 
     func beginGame() {
         removeAllBallSprites()
@@ -114,6 +129,11 @@ class GameScene: SKScene, ObservableObject {
 
     override func didMove(to view: SKView) {
 //        beginGame()
+        setupCamera()
+    }
+
+    func setupCamera() {
+        camera?.setScale(0.5)
     }
 
     private func updateMovedCount(movedCnt: Int) {
@@ -158,11 +178,9 @@ class GameScene: SKScene, ObservableObject {
 
     private func setupView() {
         scaleMode = .aspectFit
-//        anchorPoint = CGPointMake(0.5, 0.5)
-
         gameLayer = (childNode(withName: "gameLayer") as! SKSpriteNode)
         gameLayer.color = UIColor.liClearWhiteColor()
-//        centerNode.position = layerPosition
+
         setupGridLayer()
 
         ballsLayer.position = bottomLeftPosition
@@ -175,6 +193,8 @@ class GameScene: SKScene, ObservableObject {
         nextBall = childNode(withName: "nextBall")
         movedLabel = (childNode(withName: "movedLabel") as! SKLabelNode)
         explodedLabel = (childNode(withName: "explodedLabel") as! SKLabelNode)
+        bestTitle = childNode(withName: "bestTitle")
+        bestLabel = (childNode(withName: "bestLabel") as! SKLabelNode)
 
     }
 
@@ -182,12 +202,11 @@ class GameScene: SKScene, ObservableObject {
     private func setupGridLayer() {
         let gridLayer = SKNode()
         gridLayer.position = bottomLeftPosition
-        gridLayer.zPosition = gridZPosition
         gameLayer.addChild(gridLayer)
         let lineColor = UIColor.liLightGreyColor()
         for col in 0...Config.NumColumns {
             let verticalLine = SKShapeNode()
-            verticalLine.zPosition = gridZPosition
+            verticalLine.zPosition = Layer.grid.rawValue
             let pathToDraw = CGMutablePath()
             pathToDraw.move(to: CGPoint(x: col * Int(Cell.width), y: 0))
             pathToDraw.addLine(to:CGPoint(x: col * Int(Cell.width), y: Config.NumRows * Int(Cell.height)))
@@ -195,14 +214,12 @@ class GameScene: SKScene, ObservableObject {
             verticalLine.path = pathToDraw
             verticalLine.strokeColor = lineColor
             verticalLine.lineWidth = 1
-//            verticalLine.strokeTexture = testTexture
-//            verticalLine.isAntialiased = false
             gridLayer.addChild(verticalLine)
         }
 
         for row in 0...Config.NumRows {
             let horizontalLine = SKShapeNode()
-            horizontalLine.zPosition = gridZPosition
+            horizontalLine.zPosition = Layer.grid.rawValue
             let pathToDraw = CGMutablePath()
             pathToDraw.move(to: CGPoint(x: 0, y: row * Int(Cell.height) ))
             pathToDraw.addLine(to:CGPoint(x: Config.NumColumns * Int(Cell.width), y: row * Int(Cell.height)))
@@ -240,7 +257,7 @@ class GameScene: SKScene, ObservableObject {
             if ball.ballType < 0 { // small ball
                 ball.sprite.xScale = 0.1
                 ball.sprite.yScale = 0.1
-                ball.sprite.zPosition = smallBallZPosition
+                ball.sprite.zPosition = Layer.smallBall.rawValue //smallBallZPosition
                 let action = SKAction.sequence([SKAction.wait(forDuration: 0.25, withRange: 0.5),
                                                 SKAction.group([SKAction.fadeIn(withDuration: 0.25),
                                                                 SKAction.scale(to: 0.5, duration: 0.25)
@@ -249,7 +266,7 @@ class GameScene: SKScene, ObservableObject {
             } else { // big ball
                 ball.sprite.xScale = 0.5
                 ball.sprite.yScale = 0.5
-                ball.sprite.zPosition = bigBallZPosition
+                ball.sprite.zPosition = Layer.bigBall.rawValue //bigBallZPosition
                 let action = SKAction.sequence([SKAction.wait(forDuration: 0.25, withRange: 0.5),
                                                 SKAction.group([SKAction.fadeIn(withDuration: 0.25),
                                                                 SKAction.scale(to: 1.0, duration: 0.25)
@@ -266,7 +283,7 @@ class GameScene: SKScene, ObservableObject {
         let comboLabel = SKLabelNode(fontNamed: "Courier-Bold", text: "COMBO x \(combo)", fontSize: 30, textColor: .blue, shadowColor: .lightGray)
 
 
-        comboLabel.zPosition = scoreZPosition
+        comboLabel.zPosition = Layer.score.rawValue //scoreZPosition
         comboLabel.verticalAlignmentMode = .center
         comboLabel.horizontalAlignmentMode = .center
 
@@ -290,7 +307,7 @@ class GameScene: SKScene, ObservableObject {
         return await withTaskGroup(of: Void.self) { group in
             let duration: TimeInterval = 0.2
             for ball in balls {
-                ball.sprite.zPosition = bigBallZPosition
+                ball.sprite.zPosition = Layer.bigBall.rawValue // bigBallZPosition
                 group.addTask {
                     await ball.sprite.run(SKAction.scale(to: 1.0, duration: duration))
                 }
@@ -307,7 +324,7 @@ class GameScene: SKScene, ObservableObject {
             for ball in balls {
                 let sprite = ball.sprite
                 sprite.position = ball.cell.toPoint
-                sprite.zPosition = smallBallZPosition
+                sprite.zPosition = Layer.smallBall.rawValue // smallBallZPosition
                 sprite.alpha = 0.0
                 sprite.xScale = 0.1
                 sprite.yScale = 0.1
@@ -392,7 +409,7 @@ class GameScene: SKScene, ObservableObject {
         let scoreLabel = SKLabelNode(fontNamed: "Courier-Bold", text: "\(chain.score)", fontSize: 21, textColor: .blue, shadowColor: .lightGray)
 
         scoreLabel.position = chainCenterPoint
-        scoreLabel.zPosition = scoreZPosition
+        scoreLabel.zPosition = Layer.score.rawValue
         scoreLabel.verticalAlignmentMode = .center
         ballsLayer.addChild(scoreLabel)
 
@@ -680,7 +697,7 @@ extension GameScene {
             let duration = 0.2
             for cell in cells {
                 if let ball = ballManager.ballAt(cell: cell), ball.sprite.parent != nil {
-                    ball.sprite.zPosition = smallBallZPosition
+                    ball.sprite.zPosition = Layer.smallBall.rawValue //smallBallZPosition
                     group.addTask {
                         await ball.sprite.run(SKAction.scale(to: 0.5, duration: duration))
                     }
@@ -749,7 +766,7 @@ extension GameScene {
             for ball in balls {
                 ball.prepareUndoExplode()
                 ball.sprite.position = ball.cell.toPoint// point(column: ball.column, row: ball.row)
-                ball.sprite.zPosition = bigBallZPosition
+                ball.sprite.zPosition = Layer.bigBall.rawValue //bigBallZPosition
                 ballsLayer.addChild(ball.sprite)
                 group.addTask {
                     await ball.undoExplode()

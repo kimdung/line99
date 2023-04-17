@@ -23,7 +23,7 @@ class Ball: Codable {
                                 "jump_5_1.png",
                                 "jump_6_1.png",
                                 "jump_7_1.png"]
-
+    private var effectNode: SKEffectNode?
     init(type: Int, column: Int, row: Int) {
         self.ballType = type
         self.column = column
@@ -95,10 +95,14 @@ extension Ball {
         let jumpingAction = SKAction.repeatForever(SKAction.sequence([moveUpAction, moveDownAction]))
         sprite.run(jumpingAction, withKey: "jumping")
 
+
+
     }
 
     func stopJumping() {
         sprite.removeAction(forKey: "jumping")
+        effectNode?.removeFromParent()
+        effectNode = nil
         let centerPoint = cell.toPoint
         let moveToCenterAction = SKAction.move(to: centerPoint, duration: 0.1)
         moveToCenterAction.timingMode = .easeInEaseOut
@@ -152,13 +156,14 @@ extension Ball {
     }
 
     private var explodeSpriteTextures: [SKTexture] {
-        var textureArr = [SKTexture]()
-        for i in 1..<9 {
-            let name = "explode_\(ballType)_\(i).png"
-            let texture = SKTexture(imageNamed: name)
-            textureArr.append(texture)
-        }
-        return textureArr
+        let texttures = loadTextures(atlas: "Balls", prefix: "explode_\(ballType)_", startsAt: 1, stopsAt: 8)
+        return texttures
+    }
+
+    func setupConstraints(floor: CGFloat) {
+        let range = SKRange(lowerLimit: floor, upperLimit: floor)
+        let lockToPlatform = SKConstraint.positionY(range)
+//        constraints = [ lockToPlatform ]
     }
 
     func explodeAndRemove() async {
@@ -181,10 +186,26 @@ extension Ball {
     }
 
     func undoExplode() async {
+        let timePerFrame = 0.05
         var textureArr: [SKTexture] = explodeSpriteTextures.reversed()
         textureArr.append(SKTexture.init(imageNamed: spriteName))
-        let undoExplodeAction = SKAction.animate(with: textureArr, timePerFrame: 0.05)
+        let undoExplodeAction = SKAction.animate(with: textureArr, timePerFrame: timePerFrame)
         await sprite.run(undoExplodeAction)
     }
 
+}
+
+extension Ball {
+    func loadTextures(atlas: String, prefix: String,
+                      startsAt: Int, stopsAt: Int) -> [SKTexture] {
+        var textureArray = [SKTexture]()
+        let textureAtlas = SKTextureAtlas(named: atlas)
+        for i in startsAt...stopsAt {
+            let textureName = "\(prefix)\(i)"
+            let temp = textureAtlas.textureNamed(textureName)
+            textureArray.append(temp)
+        }
+        return textureArray
+
+    }
 }
